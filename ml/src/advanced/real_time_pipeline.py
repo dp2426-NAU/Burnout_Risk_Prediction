@@ -425,3 +425,4 @@ class RealTimePredictionPipeline:
                 "timestamp": datetime.utcnow().isoformat(),
                 "error": str(e)
             }
+

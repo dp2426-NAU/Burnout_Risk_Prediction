@@ -640,3 +640,4 @@ class AggregationFeatureExtractor:
             'sent_urgent_ratio': 0.0,
             'received_urgent_ratio': 0.0
         }
+

@@ -10,9 +10,9 @@ services:
     container_name: burnout-mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: burnout_risk_prediction
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-burnout_risk_prediction}
     ports:
       - "27017:27017"
     volumes:
@@ -29,14 +29,16 @@ services:
     container_name: burnout-backend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      PORT: 3000
-      MONGODB_URI: mongodb://admin:password123@mongodb:27017/burnout_risk_prediction?authSource=admin
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      JWT_EXPIRES_IN: 24h
-      CORS_ORIGIN: http://localhost:5173
-      RATE_LIMIT_WINDOW_MS: 900000
-      RATE_LIMIT_MAX_REQUESTS: 100
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${BACKEND_PORT:-3000}
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DATABASE:-burnout_risk_prediction}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      REDIS_URL: redis://redis:6379
+      ML_SERVICE_URL: http://ml-service:8000
     ports:
       - "3000:3000"
     depends_on:

@@ -456,3 +456,4 @@ class SHAPAnalyzer:
         except Exception as e:
             logger.error(f"Error getting feature importance summary: {str(e)}")
             return {'error': str(e)}
+

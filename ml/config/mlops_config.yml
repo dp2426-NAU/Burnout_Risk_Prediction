@@ -282,3 +282,4 @@ backup:
     type: "local"  # local, s3, gcs
     path: "backups"
     compression: true
+

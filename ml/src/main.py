@@ -4,8 +4,12 @@ FastAPI application for the ML service component of the burnout risk prediction 
 This service handles model training, prediction, and evaluation.
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import logging
@@ -13,6 +17,7 @@ import asyncio
 from datetime import datetime
 import os
 import sys
+import redis
 
 # Add the src directory to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -33,22 +38,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize FastAPI app with enhanced security - Created by Balaji Koneti
 app = FastAPI(
     title="Burnout Risk Prediction ML Service",
     description="Machine Learning service for burnout risk prediction in hybrid and remote teams",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    openapi_url="/openapi.json" if os.getenv("NODE_ENV") != "production" else None
 )
 
-# Add CORS middleware
+# Add security middleware
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "*.yourdomain.com"])
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Enhanced CORS middleware - Created by Balaji Koneti
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://yourdomain.com"  # Add your production domain
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    expose_headers=["X-Total-Count", "X-Page-Count"]
 )
 
 # Initialize services
@@ -149,12 +164,16 @@ async def health_check():
         "timestamp": datetime.utcnow().isoformat()
     }
 
-# Prediction endpoints
-@app.post("/predict", response_model=PredictionResponse)
+# Prediction endpoints with rate limiting - Created by Balaji Koneti
+@app.post("/predict", response_model=PredictionResponse, dependencies=[RateLimiter(times=10, seconds=60)])
 async def predict_burnout_risk(request: PredictionRequest):
     """Generate a burnout risk prediction for a user."""
     try:
         logger.info(f"Generating prediction for user {request.user_id}")
+        
+        # Validate input features
+        if not request.features or len(request.features) == 0:
+            raise HTTPException(status_code=400, detail="Features are required")
         
         # Generate prediction
         prediction = await prediction_service.predict(
@@ -165,6 +184,8 @@ async def predict_burnout_risk(request: PredictionRequest):
         
         return prediction
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error generating prediction: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")

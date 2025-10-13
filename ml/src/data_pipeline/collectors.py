@@ -461,3 +461,4 @@ class DataCollectionService:
         except Exception as e:
             logger.error(f"Error in batch data collection: {str(e)}")
             raise
+

@@ -583,3 +583,4 @@ class ComprehensiveEvaluator:
         except Exception as e:
             logger.error(f"Error generating comparison metrics: {str(e)}")
             return {}
+

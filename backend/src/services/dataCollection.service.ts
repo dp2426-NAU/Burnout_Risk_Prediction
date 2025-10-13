@@ -519,3 +519,4 @@ class DataCollectionService {
 
 // Export singleton instance
 export const dataCollectionService = new DataCollectionService();
+

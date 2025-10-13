@@ -432,3 +432,4 @@ class ComprehensiveMetrics:
         except Exception as e:
             logger.error(f"Error generating metric summary: {str(e)}")
             return {'error': str(e)}
+

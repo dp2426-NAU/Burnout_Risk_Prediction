@@ -614,3 +614,4 @@ class AdvancedTrainingPipeline:
                 'ensemble_models': len(self.training_results.get('ensemble_results', {}).get('results', {}))
             }
         }
+

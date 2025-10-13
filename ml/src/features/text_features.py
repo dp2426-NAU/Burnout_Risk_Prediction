@@ -412,3 +412,4 @@ class TextFeatureExtractor:
             'weekend_communication_ratio': 0.0,
             'avg_response_time_hours': 0.0
         }
+

@@ -509,3 +509,4 @@ class AdvancedModelPipeline:
         except Exception as e:
             logger.error(f"Error getting attention weights: {str(e)}")
             raise
+

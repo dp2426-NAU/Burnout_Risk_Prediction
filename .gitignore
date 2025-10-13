@@ -1,18 +1,16 @@
-# Burnout Risk Prediction System - .gitignore
-# Created by Balaji Koneti
-
 # Dependencies
 node_modules/
 */node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Production builds
-dist/
-build/
-*/dist/
-*/build/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Environment variables
 .env
@@ -39,16 +37,10 @@ pids/
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
-
-# nyc test coverage
 .nyc_output
 
 # Dependency directories
-node_modules/
 jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -70,10 +62,6 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
-
-# dotenv environment variables file
-.env
-.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -114,51 +102,24 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
+# Build outputs
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+build/
+out/
 
-# PyInstaller
-*.manifest
-*.spec
+# Database files
+*.db
+*.sqlite
+*.sqlite3
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# ML model files
+*.pkl
+*.joblib
+*.h5
+*.pb
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Jupyter Notebook
-.ipynb_checkpoints
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
 
 # IPython
 profile_default/
@@ -167,19 +128,18 @@ ipython_config.py
 # pyenv
 .python-version
 
-# celery beat schedule file
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
 celerybeat-schedule
+celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
-# Environments
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -199,121 +159,61 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# ML Models and Data
-models/
-*.pkl
-*.joblib
-*.h5
-*.hdf5
-*.model
-*.weights
-
-# Data files
-data/
-*.csv
-*.json
-*.parquet
-*.feather
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# MLflow
-mlruns/
-mlartifacts/
-
-# Weights & Biases
-wandb/
-
 # Docker
 .dockerignore
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Secrets and sensitive files
+secrets/
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
 
 # Backup files
 *.bak
 *.backup
 *.old
 
-# Temporary files
-*.tmp
-*.temp
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
 
-# IDE specific files
+# MLflow
+mlruns/
+mlflow.db
+
+# Redis dumps
+dump.rdb
+
+# MongoDB data
+data/
+
+# Uploads
+uploads/
+files/
+
+# Certificates
+*.crt
+*.key
+*.pem
+ssl/
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS specific files
+# OS
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
-*.log
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# Dependency directories
-node_modules/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+# Local development
+.local/
+local/

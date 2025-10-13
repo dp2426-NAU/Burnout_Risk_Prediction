@@ -426,3 +426,4 @@ class BurnoutModelOptimizer:
                     summary['best_model'] = model_name
         
         return summary
+

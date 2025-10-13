@@ -1,0 +1,64 @@
+{
+  "name": "burnout-risk-prediction-system",
+  "version": "1.0.0",
+  "description": "Production-ready burnout risk prediction system for hybrid and remote teams - Created by Balaji Koneti",
+  "private": true,
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:frontend && npm run install:ml",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install", 
+    "install:ml": "cd ml && pip install -r requirements.txt",
+    "test:all": "npm run test:backend && npm run test:frontend && npm run test:ml",
+    "test:backend": "cd backend && npm run test:ci",
+    "test:frontend": "cd frontend && npm run test:run",
+    "test:ml": "cd ml && python -m pytest tests/ -v",
+    "lint:all": "npm run lint:backend && npm run lint:frontend && npm run lint:ml",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:ml": "cd ml && flake8 src/ tests/ && black --check src/ tests/ && isort --check-only src/ tests/",
+    "format:all": "npm run format:backend && npm run format:frontend && npm run format:ml",
+    "format:backend": "cd backend && npm run format",
+    "format:frontend": "cd frontend && npm run format",
+    "format:ml": "cd ml && black src/ tests/ && isort src/ tests/",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:ml\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:ml": "cd ml && python src/main.py",
+    "setup": "npm run install:all && npm run format:all",
+    "ci": "npm run lint:all && npm run test:all && npm run build:all"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^8.0.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": ".husky/pre-commit",
+      "commit-msg": ".husky/commit-msg",
+      "pre-push": ".husky/pre-push"
+    }
+  },
+  "keywords": [
+    "burnout",
+    "prediction",
+    "machine-learning",
+    "wellness",
+    "hybrid-work",
+    "remote-work",
+    "healthcare",
+    "productivity"
+  ],
+  "author": "Balaji Koneti",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/balajikoneti/burnout-risk-prediction-system"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

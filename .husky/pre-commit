@@ -1,0 +1,71 @@
+#!/usr/bin/env sh
+# Pre-commit hook - Created by Balaji Koneti
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Backend checks
+if [ -d "backend" ]; then
+  echo "📦 Checking backend..."
+  cd backend
+  
+  # Type checking
+  echo "🔧 Running TypeScript type check..."
+  npm run type-check
+  
+  # Linting
+  echo "🧹 Running ESLint..."
+  npm run lint
+  
+  # Formatting check
+  echo "💅 Checking Prettier formatting..."
+  npm run format:check
+  
+  cd ..
+fi
+
+# Frontend checks
+if [ -d "frontend" ]; then
+  echo "📦 Checking frontend..."
+  cd frontend
+  
+  # Type checking
+  echo "🔧 Running TypeScript type check..."
+  npm run type-check
+  
+  # Linting
+  echo "🧹 Running ESLint..."
+  npm run lint
+  
+  # Formatting check
+  echo "💅 Checking Prettier formatting..."
+  npm run format:check
+  
+  cd ..
+fi
+
+# ML checks
+if [ -d "ml" ]; then
+  echo "📦 Checking ML service..."
+  cd ml
+  
+  # Python linting
+  echo "🧹 Running flake8..."
+  flake8 src/ tests/
+  
+  # Black formatting check
+  echo "💅 Checking Black formatting..."
+  black --check src/ tests/
+  
+  # Import sorting check
+  echo "📋 Checking import sorting..."
+  isort --check-only src/ tests/
+  
+  # Type checking
+  echo "🔧 Running mypy type check..."
+  mypy src/
+  
+  cd ..
+fi
+
+echo "✅ All pre-commit checks passed!"

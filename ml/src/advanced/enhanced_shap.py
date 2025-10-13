@@ -512,3 +512,4 @@ class EnhancedSHAPAnalyzer:
         except Exception as e:
             logger.error(f"Error creating visualizations: {str(e)}")
             return {'error': str(e)}
+

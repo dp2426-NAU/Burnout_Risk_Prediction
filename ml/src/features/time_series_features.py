@@ -492,3 +492,4 @@ class TimeSeriesFeatureExtractor:
             'urgent_email_trend': 0.0,
             'urgent_after_hours_ratio': 0.0
         }
+
