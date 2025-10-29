@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ReportsPage from './pages/ReportsPage';
+import EmployeeDetailsPage from './pages/EmployeeDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 
@@ -35,6 +36,12 @@ function App() {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashboardComponent />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/dashboard/details/:id" element={
+          <ProtectedRoute>
+            <EmployeeDetailsPage />
           </ProtectedRoute>
         } />
         

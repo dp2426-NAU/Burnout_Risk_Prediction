@@ -1,11 +1,12 @@
 // Dashboard page component - Created by Balaji Koneti
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { dashboardService, DashboardData } from '../services/dashboardService';
 import RiskCard from '../components/RiskCard';
 import RecommendationList from '../components/RecommendationList';
 import Chart from '../components/Chart';
 import { LogOut, Settings, BarChart3, TrendingUp } from 'lucide-react';
+import SettingsPanel from '../components/SettingsPanel';
 
 // Dashboard page component
 const DashboardPage: React.FC = () => {
@@ -16,6 +17,21 @@ const DashboardPage: React.FC = () => {
   const [riskData, setRiskData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const normalizedConfidence = useMemo(() => {
+    const rawConfidence = riskData?.confidence ?? 0;
+    const percentValue = rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence;
+    return Math.min(100, Math.max(0, percentValue));
+  }, [riskData?.confidence]);
+
+  const openSettings = useCallback(() => {
+    setIsSettingsOpen(true);
+  }, []);
+
+  const closeSettings = useCallback(() => {
+    setIsSettingsOpen(false);
+  }, []);
 
   // Load dashboard data on mount
   useEffect(() => {
@@ -68,7 +84,11 @@ const DashboardPage: React.FC = () => {
 
             {/* Navigation */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-100">
+              <button
+                onClick={openSettings}
+                className="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="Open settings"
+              >
                 <Settings className="h-5 w-5" />
               </button>
               <button
@@ -127,7 +147,7 @@ const DashboardPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Confidence</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {Math.round((riskData?.confidence || 0) * 100)}%
+                        {Math.round(normalizedConfidence)}%
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -175,6 +195,12 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
       </main>
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={closeSettings}
+        user={user}
+        onLogout={handleLogout}
+      />
     </div>
   );
 };

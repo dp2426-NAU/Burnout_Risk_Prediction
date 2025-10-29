@@ -1,0 +1,32 @@
+{
+  "logistic_regression": {
+    "f1_score": 0.960541601255887,
+    "classification_report": "              precision    recall  f1-score   support\n\n           0       1.00      0.94      0.97       404\n           1       0.89      1.00      0.94       196\n\n    accuracy                           0.96       600\n   macro avg       0.95      0.97      0.96       600\nweighted avg       0.96      0.96      0.96       600\n",
+    "confusion_matrix": [
+      [
+        380,
+        24
+      ],
+      [
+        0,
+        196
+      ]
+    ],
+    "roc_auc": 0.9997726813497676
+  },
+  "random_forest": {
+    "f1_score": 0.9327685066324346,
+    "classification_report": "              precision    recall  f1-score   support\n\n           0       0.94      0.97      0.95       404\n           1       0.92      0.87      0.89       196\n\n    accuracy                           0.93       600\n   macro avg       0.93      0.92      0.92       600\nweighted avg       0.93      0.93      0.93       600\n",
+    "confusion_matrix": [
+      [
+        390,
+        14
+      ],
+      [
+        26,
+        170
+      ]
+    ],
+    "roc_auc": 0.9862093352192363
+  }
+}

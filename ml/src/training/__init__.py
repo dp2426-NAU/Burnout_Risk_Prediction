@@ -1,8 +1,7 @@
-# Training Module - Created by Balaji Koneti
-"""
-Comprehensive training pipeline for burnout risk prediction models.
-"""
+"""Training pipelines for burnout models."""
 
-__version__ = "1.0.0"
-__author__ = "Balaji Koneti"
+from .config import TrainingConfig
+from .pipeline import TrainingPipeline, TrainingSummary
+
+__all__ = ["TrainingConfig", "TrainingPipeline", "TrainingSummary"]
 

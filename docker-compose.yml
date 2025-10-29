@@ -1,143 +1,67 @@
-# Docker Compose configuration for Burnout Risk Prediction System
-# Created by Balaji Koneti
-
-version: '3.8'
+version: '3.9'
 
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: burnout-mongodb
+  postgres:
+    image: postgres:15-alpine
+    container_name: burnout-postgres
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-burnout_risk_prediction}
-    ports:
-      - "27017:27017"
+      POSTGRES_DB: ${POSTGRES_DB:-burnout}
+      POSTGRES_USER: ${POSTGRES_USER:-burnout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-burnout}
     volumes:
-      - mongodb_data:/data/db
-      - ./backend/scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    networks:
-      - burnout-network
-
-  # Backend API Service
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: burnout-backend
-    restart: unless-stopped
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      PORT: ${BACKEND_PORT:-3000}
-      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DATABASE:-burnout_risk_prediction}?authSource=admin
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
-      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
-      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
-      REDIS_URL: redis://redis:6379
-      ML_SERVICE_URL: http://ml-service:8000
-    ports:
-      - "3000:3000"
-    depends_on:
-      - mongodb
-    volumes:
-      - ./backend/logs:/app/logs
-      - ./backend/models:/app/models
-    networks:
-      - burnout-network
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Frontend Service
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: burnout-frontend
-    restart: unless-stopped
-    environment:
-      VITE_API_URL: http://localhost:3000/api
-    ports:
-      - "5173:5173"
-    depends_on:
-      - backend
-    networks:
-      - burnout-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # ML Service
   ml-service:
-    build:
-      context: ./ml
-      dockerfile: Dockerfile
+    build: ./ml
     container_name: burnout-ml
     restart: unless-stopped
     environment:
-      PYTHONPATH: /app
-      MODEL_DIR: /app/models
-      DATA_DIR: /app/data
-    ports:
-      - "8000:8000"
+      PYTHONPATH: /app/src
     volumes:
       - ./ml/models:/app/models
-      - ./ml/data:/app/data
-      - ./ml/logs:/app/logs
-    networks:
-      - burnout-network
-    depends_on:
-      - mongodb
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Redis Cache (for session management and caching)
-  redis:
-    image: redis:7-alpine
-    container_name: burnout-redis
-    restart: unless-stopped
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - burnout-network
-    command: redis-server --appendonly yes
+      - '8001:8001'
 
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: burnout-nginx
+  backend:
+    build: ./backend-nest
+    container_name: burnout-backend
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
-      - frontend
-      - backend
-    networks:
-      - burnout-network
+      postgres:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+    environment:
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-burnout}:${POSTGRES_PASSWORD:-burnout}@postgres:5432/${POSTGRES_DB:-burnout}}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-super-secret-access-key}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super-secret-refresh-key}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-900}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-604800}
+      ML_SERVICE_URL: http://ml-service:8001
+    command: sh -c "npx prisma migrate deploy && node dist/main.js"
+    ports:
+      - '3001:3001'
+
+  frontend:
+    build: ./frontend-next
+    container_name: burnout-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://backend:3001
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-replace-with-strong-secret}
+    ports:
+      - '3000:3000'
 
 volumes:
-  mongodb_data:
-    driver: local
-  redis_data:
-    driver: local
-
-networks:
-  burnout-network:
-    driver: bridge
+  pgdata:

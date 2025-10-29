@@ -1,8 +1,9 @@
 // Simple Realistic Data Generation - Created by Balaji Koneti
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 const { MongoClient, ObjectId } = require('mongodb');
 
-const MONGODB_URI = 'mongodb://admin:password123@localhost:27017/burnout_risk_prediction?authSource=admin';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/burnout_risk_prediction?authSource=admin';
 
 // Generate realistic work patterns
 function generateWorkPatterns(role, department, isManager = false, userId) {

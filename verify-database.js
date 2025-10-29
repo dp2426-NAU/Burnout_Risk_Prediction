@@ -1,7 +1,8 @@
 // Database Verification Script - Created by Balaji Koneti
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-const MONGODB_URI = 'mongodb://admin:password123@localhost:27017/burnout_risk_prediction?authSource=admin';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/burnout_risk_prediction?authSource=admin';
 
 async function verifyDatabase() {
   const client = new MongoClient(MONGODB_URI);

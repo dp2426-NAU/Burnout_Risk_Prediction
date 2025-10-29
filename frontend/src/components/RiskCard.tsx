@@ -1,6 +1,7 @@
 // Risk card component - Created by Balaji Koneti
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Props interface
 interface RiskCardProps {
@@ -9,6 +10,8 @@ interface RiskCardProps {
 
 // Risk card component
 const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
+  const navigate = useNavigate();
+
   // Get risk level styling
   const getRiskLevelStyle = (riskLevel: string) => {
     switch (riskLevel) {
@@ -114,8 +117,25 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
 
   const riskLevel = data?.riskLevel || 'unknown';
   const riskScore = data?.riskScore || 0;
-  const confidence = data?.confidence || 0;
+  const confidence = data?.confidence ?? 0;
   const style = getRiskLevelStyle(riskLevel);
+  const normalizedConfidence = useMemo(() => {
+    if (typeof confidence !== 'number' || Number.isNaN(confidence)) {
+      return 0;
+    }
+
+    const confidenceValue = confidence <= 1 ? confidence * 100 : confidence;
+    return Math.min(100, Math.max(0, confidenceValue));
+  }, [confidence]);
+
+  const handleViewDetails = useCallback(() => {
+    if (!data) {
+      return;
+    }
+
+    const targetId = data.userId ?? data.id ?? (data as any).employeeId ?? 'me';
+    navigate(`/dashboard/details/${encodeURIComponent(String(targetId))}`);
+  }, [data, navigate]);
 
   return (
     <div className={`card border-l-4 ${style.border}`}>
@@ -184,12 +204,12 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
           <div className="flex items-center mt-1">
             <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
               <div
-                className="bg-primary-500 h-2 rounded-full"
-                style={{ width: `${confidence * 100}%` }}
+                className="bg-primary-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${normalizedConfidence}%` }}
               ></div>
             </div>
             <span className="text-sm font-medium text-gray-900">
-              {Math.round(confidence * 100)}%
+              {Math.round(normalizedConfidence)}%
             </span>
           </div>
         </div>
@@ -209,7 +229,11 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
 
       {/* Action button */}
       <div className="mt-6">
-        <button className="btn-primary w-full">
+        <button
+          onClick={handleViewDetails}
+          className="btn-primary w-full"
+          type="button"
+        >
           View Detailed Analysis
         </button>
       </div>

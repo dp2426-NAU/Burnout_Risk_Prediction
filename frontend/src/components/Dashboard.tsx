@@ -1,5 +1,5 @@
 // Dashboard component - Created by Balaji Koneti
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart3, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 
 // Props interface
@@ -57,6 +57,12 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
     }
   };
 
+  const normalizedConfidence = useMemo(() => {
+    const rawConfidence = data?.confidence ?? 0;
+    const percentValue = rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence;
+    return Math.min(100, Math.max(0, percentValue));
+  }, [data?.confidence]);
+
   return (
     <div className="space-y-6">
       {/* Risk overview card */}
@@ -106,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Confidence Level</span>
           <span className="font-medium text-gray-900">
-            {Math.round((data?.confidence || 0) * 100)}%
+            {Math.round(normalizedConfidence)}%
           </span>
         </div>
       </div>

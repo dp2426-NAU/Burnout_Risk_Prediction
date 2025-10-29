@@ -1,4 +1,5 @@
 // Database migration script - Created by Balaji Koneti
+require('dotenv').config();
 const mongoose = require('mongoose');
 const { logger } = require('../src/utils/logger');
 

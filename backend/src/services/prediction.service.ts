@@ -62,12 +62,12 @@ export async function generatePrediction(
     );
     
     // Extract values from ML prediction
-    const riskScore = mlPrediction.risk_score;
-    const riskLevel = mlPrediction.risk_level as 'low' | 'medium' | 'high' | 'critical';
+    const riskScore = mlPrediction.riskScore;
+    const riskLevel = mlPrediction.riskLevel as 'low' | 'medium' | 'high' | 'critical';
     const confidence = mlPrediction.confidence;
     
     // Convert ML recommendations to our format
-    const recommendations = convertMLRecommendations(mlPrediction.recommendations, features, riskLevel);
+    const recommendations = convertMLRecommendations(features, riskLevel);
     
     // Create prediction result
     const prediction = new PredictionResult({
@@ -95,7 +95,7 @@ export async function generatePrediction(
         surveyResponses: 0, // Placeholder
         biometricData: 0 // Placeholder
       },
-      modelVersion: mlPrediction.model_version
+      modelVersion: 'baseline'
     });
     
     // Save prediction to database
@@ -118,31 +118,15 @@ export async function generatePrediction(
   }
 }
 
-// Function to convert ML service recommendations to our format
+// Function to convert features and risk level to recommendation set
 function convertMLRecommendations(
-  mlRecommendations: string[],
   features: ExtractedFeatures,
   riskLevel: string
 ): IPredictionResult['recommendations'] {
   const recommendations: IPredictionResult['recommendations'] = [];
   
   try {
-    // Convert simple string recommendations to structured format
-    mlRecommendations.forEach((rec, index) => {
-      recommendations.push({
-        priority: riskLevel === 'critical' || riskLevel === 'high' ? 'high' : 'medium',
-        category: 'general',
-        title: `Recommendation ${index + 1}`,
-        description: rec,
-        actionItems: [
-          'Review the recommendation above',
-          'Consider implementing suggested changes',
-          'Monitor your progress regularly'
-        ]
-      });
-    });
-    
-    // Add additional context-based recommendations if needed
+    // Add context-based recommendations derived from recent signals
     if (features.workloadLevel > 3) {
       recommendations.push({
         priority: 'high',
@@ -162,7 +146,35 @@ function convertMLRecommendations(
       });
     }
     
-    // If no recommendations from ML service, provide general ones
+    if (features.stressLevel > 3) {
+      recommendations.push({
+        priority: 'high',
+        category: 'stress',
+        title: 'Introduce Recovery Blocks',
+        description: 'Stress indicators are elevated. Use micro-breaks and recovery routines to reset before critical work.',
+        actionItems: [
+          'Schedule two 15-minute recovery breaks each day',
+          'Practice guided breathing exercises after intense meetings',
+          'Block calendar time for focused, interruption-free work'
+        ]
+      });
+    }
+
+    if (features.sleepQuality < 4 || features.exerciseFrequency < 3) {
+      recommendations.push({
+        priority: 'medium',
+        category: 'health',
+        title: 'Improve Regenerative Habits',
+        description: 'Sleep quality and movement habits influence resilience. Incremental improvements will reduce burnout risk.',
+        actionItems: [
+          'Set a consistent lights-out routine',
+          'Take a 10-minute walk between meetings',
+          'Avoid screen time 30 minutes before sleep'
+        ]
+      });
+    }
+
+    // If no specific recommendations, provide general guidance
     if (recommendations.length === 0) {
       recommendations.push({
         priority: 'medium',

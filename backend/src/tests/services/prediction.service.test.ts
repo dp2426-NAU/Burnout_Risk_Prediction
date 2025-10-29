@@ -82,22 +82,16 @@ describe('Prediction Service', () => {
       // Mock ML API response
       const { mlApiClient } = require('../../services/mlApiClient.service');
       mlApiClient.predictBurnoutRisk.mockResolvedValue({
-        prediction_id: 'pred-123',
-        user_id: testUserId,
-        risk_level: 'medium',
-        risk_score: 0.65,
+        riskLevel: 'medium',
+        riskScore: 0.65,
         confidence: 0.85,
-        factors: {
-          workload: 4,
-          stress_level: 3,
-          work_life_balance: 6,
+        probabilities: {
+          low: 0.2,
+          medium: 0.5,
+          high: 0.2,
+          critical: 0.1,
         },
-        recommendations: [
-          'Take regular breaks',
-          'Reduce meeting frequency',
-        ],
-        model_version: '1.0.0',
-        prediction_date: new Date(),
+        features: {},
       });
 
       const request = {
@@ -121,26 +115,23 @@ describe('Prediction Service', () => {
       expect(result.prediction?.riskLevel).toBe('medium');
       expect(result.prediction?.riskScore).toBe(0.65);
       expect(result.prediction?.confidence).toBe(0.85);
-      expect(result.prediction?.recommendations).toHaveLength(2);
+      expect(result.prediction?.recommendations.length).toBeGreaterThan(0);
     });
 
     it('should handle missing calendar and email data', async () => {
       // Mock ML API response for user with no data
       const { mlApiClient } = require('../../services/mlApiClient.service');
       mlApiClient.predictBurnoutRisk.mockResolvedValue({
-        prediction_id: 'pred-124',
-        user_id: testUserId,
-        risk_level: 'low',
-        risk_score: 0.3,
+        riskLevel: 'low',
+        riskScore: 0.3,
         confidence: 0.7,
-        factors: {
-          workload: 2,
-          stress_level: 2,
-          work_life_balance: 8,
+        probabilities: {
+          low: 0.6,
+          medium: 0.3,
+          high: 0.05,
+          critical: 0.05,
         },
-        recommendations: ['Continue current work patterns'],
-        model_version: '1.0.0',
-        prediction_date: new Date(),
+        features: {},
       });
 
       const request = {
@@ -179,19 +170,16 @@ describe('Prediction Service', () => {
       // Mock ML API response
       const { mlApiClient } = require('../../services/mlApiClient.service');
       mlApiClient.predictBurnoutRisk.mockResolvedValue({
-        prediction_id: 'pred-125',
-        user_id: testUserId,
-        risk_level: 'high',
-        risk_score: 0.8,
+        riskLevel: 'high',
+        riskScore: 0.8,
         confidence: 0.9,
-        factors: {
-          workload: 8,
-          stress_level: 7,
-          work_life_balance: 3,
+        probabilities: {
+          low: 0.1,
+          medium: 0.2,
+          high: 0.5,
+          critical: 0.2,
         },
-        recommendations: ['Take immediate action'],
-        model_version: '1.0.0',
-        prediction_date: new Date(),
+        features: {},
       });
 
       const request = {
@@ -215,19 +203,16 @@ describe('Prediction Service', () => {
       // Mock ML API response
       const { mlApiClient } = require('../../services/mlApiClient.service');
       mlApiClient.predictBurnoutRisk.mockResolvedValue({
-        prediction_id: 'pred-126',
-        user_id: testUserId,
-        risk_level: 'medium',
-        risk_score: 0.6,
+        riskLevel: 'medium',
+        riskScore: 0.6,
         confidence: 0.8,
-        factors: {
-          workload: 5,
-          stress_level: 4,
-          work_life_balance: 6,
+        probabilities: {
+          low: 0.2,
+          medium: 0.5,
+          high: 0.2,
+          critical: 0.1,
         },
-        recommendations: ['Monitor work patterns'],
-        model_version: '1.0.0',
-        prediction_date: new Date(),
+        features: {},
       });
 
       const request = {

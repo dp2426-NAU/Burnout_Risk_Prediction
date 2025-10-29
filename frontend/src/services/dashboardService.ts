@@ -4,6 +4,7 @@
 import { apiClient } from './apiClient';
 
 export interface DashboardData {
+  userId?: string;
   riskLevel: string;
   riskScore: number;
   confidence: number;
@@ -103,9 +104,10 @@ class DashboardService {
         const riskLevel = this.getRiskLevel(riskScore);
         
         return {
+          userId: user?.id || user?._id,
           riskLevel: riskLevel,
           riskScore: Math.round(riskScore * 100),
-          confidence: Math.round((0.7 + Math.random() * 0.2) * 100), // 70-90 as percentage
+          confidence: 0.7 + Math.random() * 0.2,
           factors: {
             workload: workPatterns.workloadScore || 6,
             stressLevel: workPatterns.stressLevel || 6,
@@ -486,9 +488,10 @@ class DashboardService {
   // Mock data fallbacks
   private getMockDashboardData(): DashboardData {
     return {
+      userId: 'current-user',
       riskLevel: 'medium',
       riskScore: 65,
-      confidence: 85,
+      confidence: 0.85,
       factors: {
         workload: 7,
         stressLevel: 6,

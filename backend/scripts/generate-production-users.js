@@ -1,4 +1,5 @@
 // Production user generation script - Created by Balaji Koneti
+require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { faker } = require('@faker-js/faker');

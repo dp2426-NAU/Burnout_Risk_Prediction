@@ -6,24 +6,13 @@
 
 import { logger } from '../utils/logger';
 
-// Interface for ML API prediction request
-export interface MLPredictionRequest {
-  user_id: string;
-  features: Record<string, number>;
-  model_version?: string;
-}
-
 // Interface for ML API prediction response
 export interface MLPredictionResponse {
-  prediction_id: string;
-  user_id: string;
-  risk_level: string;
-  risk_score: number;
+  riskLevel: string;
+  riskScore: number;
   confidence: number;
-  factors: Record<string, any>;
-  recommendations: string[];
-  model_version: string;
-  prediction_date: string;
+  probabilities: Record<string, number>;
+  features: Record<string, number>;
 }
 
 // Interface for ML API error response
@@ -52,10 +41,12 @@ export class MLApiClient {
     modelVersion: string = 'latest'
   ): Promise<MLPredictionResponse> {
     try {
-      const request: MLPredictionRequest = {
-        user_id: userId,
-        features: this.normalizeFeatures(features),
-        model_version: modelVersion
+      const body = {
+        employeeId: userId,
+        features,
+        metadata: {
+          modelVersion
+        }
       };
 
       logger.info(`Sending prediction request to ML service for user ${userId}`);
@@ -65,7 +56,7 @@ export class MLApiClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
@@ -74,14 +65,14 @@ export class MLApiClient {
       }
 
       const prediction: MLPredictionResponse = await response.json();
-      
-      logger.info(`Received prediction from ML service: ${prediction.risk_level} (${prediction.risk_score})`);
-      
+
+      logger.info(`Received prediction from ML service: ${prediction.riskLevel} (${prediction.riskScore})`);
+
       return prediction;
 
     } catch (error) {
       logger.error(`Error calling ML API: ${error}`);
-      
+
       // Return fallback prediction if ML service is unavailable
       return this.getFallbackPrediction(userId, features);
     }
@@ -94,26 +85,8 @@ export class MLApiClient {
     userId: string,
     limit: number = 10
   ): Promise<MLPredictionResponse[]> {
-    try {
-      const response = await this.makeRequest(`/predictions/${userId}?limit=${limit}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        const errorData: MLErrorResponse = await response.json();
-        throw new Error(`ML API error: ${errorData.detail}`);
-      }
-
-      const predictions: MLPredictionResponse[] = await response.json();
-      return predictions;
-
-    } catch (error) {
-      logger.error(`Error getting prediction history from ML API: ${error}`);
-      return [];
-    }
+    logger.warn('Prediction history endpoint not implemented in ML service. Returning empty list.');
+    return [];
   }
 
   /**
@@ -139,26 +112,7 @@ export class MLApiClient {
    * Get available model versions from ML service
    */
   async getModelVersions(): Promise<string[]> {
-    try {
-      const response = await this.makeRequest('/models', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        const errorData: MLErrorResponse = await response.json();
-        throw new Error(`ML API error: ${errorData.detail}`);
-      }
-
-      const data = await response.json();
-      return data.model_versions || [];
-
-    } catch (error) {
-      logger.error(`Error getting model versions from ML API: ${error}`);
-      return ['latest'];
-    }
+    return ['baseline'];
   }
 
   /**
@@ -195,69 +149,6 @@ export class MLApiClient {
   /**
    * Normalize features to match ML service expectations
    */
-  private normalizeFeatures(features: Record<string, number>): Record<string, number> {
-    const normalized: Record<string, number> = {};
-    
-    // Map backend feature names to ML service expected names
-    const featureMapping: Record<string, string> = {
-      'workHours': 'work_hours_per_week',
-      'overtimeHours': 'overtime_hours',
-      'weekendWork': 'weekend_work_hours',
-      'earlyMorningWork': 'early_morning_hours',
-      'lateNightWork': 'late_night_hours',
-      'meetingCount': 'meeting_hours_per_week',
-      'meetingDuration': 'avg_meeting_duration',
-      'backToBackMeetings': 'back_to_back_meetings',
-      'virtualMeetings': 'virtual_meeting_ratio',
-      'emailCount': 'email_count_per_day',
-      'avgEmailLength': 'avg_email_length',
-      'stressEmailCount': 'stress_email_count',
-      'urgentEmailCount': 'urgent_email_count',
-      'responseTime': 'avg_response_time',
-      'totalEvents': 'total_calendar_events',
-      'avgEventDuration': 'avg_event_duration',
-      'focusTimeRatio': 'focus_time_ratio',
-      'breakTimeRatio': 'break_time_ratio',
-      'stressLevel': 'stress_level',
-      'workloadLevel': 'workload_score',
-      'workLifeBalance': 'work_life_balance',
-      'socialInteraction': 'social_interaction_score',
-      'teamCollaboration': 'team_collaboration_score',
-      'sleepQuality': 'sleep_quality_score',
-      'exerciseFrequency': 'exercise_frequency_score',
-      'nutritionQuality': 'nutrition_quality_score'
-    };
-
-    // Apply mapping and ensure all expected features are present
-    const expectedFeatures = [
-      'work_hours_per_week',
-      'meeting_hours_per_week',
-      'email_count_per_day',
-      'stress_level',
-      'workload_score',
-      'work_life_balance',
-      'team_size',
-      'remote_work_percentage',
-      'overtime_hours',
-      'deadline_pressure'
-    ];
-
-    for (const [backendKey, mlKey] of Object.entries(featureMapping)) {
-      if (features[backendKey] !== undefined) {
-        normalized[mlKey] = features[backendKey];
-      }
-    }
-
-    // Fill in missing features with default values
-    for (const feature of expectedFeatures) {
-      if (normalized[feature] === undefined) {
-        normalized[feature] = 0.0;
-      }
-    }
-
-    return normalized;
-  }
-
   /**
    * Generate fallback prediction when ML service is unavailable
    */
@@ -282,24 +173,16 @@ export class MLApiClient {
     else riskLevel = 'critical';
 
     return {
-      prediction_id: `fallback_${Date.now()}`,
-      user_id: userId,
-      risk_level: riskLevel,
-      risk_score: riskScore,
-      confidence: 0.5, // Lower confidence for fallback
-      factors: {
-        workload: workloadLevel,
-        stress_level: stressLevel,
-        work_life_balance: features.workLifeBalance || 0.5,
-        note: 'Fallback prediction - ML service unavailable'
+      riskLevel,
+      riskScore,
+      confidence: 0.5,
+      probabilities: {
+        low: riskLevel === 'low' ? 0.7 : 0.1,
+        medium: riskLevel === 'medium' ? 0.6 : 0.1,
+        high: riskLevel === 'high' ? 0.6 : 0.1,
+        critical: riskLevel === 'critical' ? 0.6 : 0.1
       },
-      recommendations: [
-        'ML service is currently unavailable. Please try again later.',
-        'Consider monitoring your work hours and stress levels.',
-        'Take regular breaks and maintain work-life balance.'
-      ],
-      model_version: 'fallback',
-      prediction_date: new Date().toISOString()
+      features,
     };
   }
 }

@@ -2,9 +2,10 @@
 // This script generates unique, realistic data for each user
 
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 const { MongoClient, ObjectId } = require('mongodb');
 
-const MONGODB_URI = 'mongodb://admin:password123@localhost:27017/burnout_risk_prediction?authSource=admin';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/burnout_risk_prediction?authSource=admin';
 
 // Realistic names and data
 const firstNames = [
