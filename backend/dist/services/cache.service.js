@@ -184,7 +184,8 @@ class CacheService {
     }
     async getUserPredictions(userId) {
         const key = `${CACHE_PREFIXES.PREDICTION}user:${userId}`;
-        return this.get(key) || [];
+        const predictions = await this.get(key);
+        return predictions ?? [];
     }
     async setDashboardData(userId, dashboardData) {
         const key = `${CACHE_PREFIXES.DASHBOARD}${userId}`;
@@ -230,17 +231,30 @@ class CacheService {
             }
             const info = await this.redis.info('memory');
             const keyspace = await this.redis.info('keyspace');
+            const serverInfo = await this.redis.info('server');
+            const uptimeInSeconds = this.parseInfoValue(serverInfo, 'uptime_in_seconds');
             return {
                 connected: this.isConnected,
                 memory: info,
                 keyspace: keyspace,
-                uptime: await this.redis.uptime(),
+                uptimeSeconds: uptimeInSeconds !== null ? Number(uptimeInSeconds) : null,
             };
         }
         catch (error) {
             logger_1.logger.error('Error getting cache stats:', error);
             return null;
         }
+    }
+    parseInfoValue(info, key) {
+        const line = info
+            .split('\n')
+            .map(entry => entry.trim())
+            .find(entry => entry.startsWith(`${key}:`));
+        if (!line) {
+            return null;
+        }
+        const [, value] = line.split(':', 2);
+        return value ?? null;
     }
     async healthCheck() {
         try {

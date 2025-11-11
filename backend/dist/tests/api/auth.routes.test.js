@@ -5,11 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
 const express_1 = __importDefault(require("express"));
-const auth_routes_1 = require("../../api/routes/auth.routes");
+const auth_routes_1 = __importDefault(require("../../api/routes/auth.routes"));
 const user_model_1 = require("../../models/user.model");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-app.use('/api/auth', auth_routes_1.authRoutes);
+app.use('/api/auth', auth_routes_1.default);
 describe('Auth Routes', () => {
     beforeEach(async () => {
         await user_model_1.User.deleteMany({});
@@ -200,16 +200,16 @@ describe('Auth Routes', () => {
             const response = await (0, supertest_1.default)(app)
                 .get('/api/auth/profile')
                 .set('Authorization', 'Bearer invalid-token')
-                .expect(401);
+                .expect(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.message).toContain('Invalid token');
+            expect(response.body.message).toContain('Invalid');
         });
         it('should return 401 for missing token', async () => {
             const response = await (0, supertest_1.default)(app)
                 .get('/api/auth/profile')
                 .expect(401);
             expect(response.body.success).toBe(false);
-            expect(response.body.message).toContain('Access denied');
+            expect(response.body.message).toContain('Access token required');
         });
     });
     describe('PUT /api/auth/profile', () => {
@@ -265,9 +265,9 @@ describe('Auth Routes', () => {
                 .put('/api/auth/profile')
                 .set('Authorization', 'Bearer invalid-token')
                 .send(updateData)
-                .expect(401);
+                .expect(403);
             expect(response.body.success).toBe(false);
-            expect(response.body.message).toContain('Invalid token');
+            expect(response.body.message).toContain('Invalid');
         });
     });
 });

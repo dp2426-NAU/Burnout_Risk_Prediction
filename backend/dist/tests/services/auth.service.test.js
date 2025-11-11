@@ -50,7 +50,7 @@ describe('Auth Service', () => {
                 role: 'user',
             };
             await (0, auth_service_1.registerUser)(userData.email, userData.password, userData.firstName, userData.lastName, userData.role);
-            const user = await user_model_1.User.findOne({ email: userData.email });
+            const user = await user_model_1.User.findOne({ email: userData.email }).select('+password');
             expect(user?.password).not.toBe(userData.password);
             expect(user?.password).toMatch(/^\$2[aby]\$/);
         });
@@ -85,28 +85,27 @@ describe('Auth Service', () => {
     describe('verifyToken', () => {
         it('should verify valid token', async () => {
             const registerResult = await (0, auth_service_1.registerUser)('test@example.com', 'password123', 'John', 'Doe', 'user');
-            const result = await (0, auth_service_1.verifyToken)(registerResult.token);
-            expect(result.success).toBe(true);
-            expect(result.user).toBeDefined();
-            expect(result.user?.email).toBe('test@example.com');
+            const payload = (0, auth_service_1.verifyToken)(registerResult.token);
+            expect(payload).not.toBeNull();
+            expect(payload?.email).toBe('test@example.com');
         });
         it('should reject invalid token', async () => {
-            const result = await (0, auth_service_1.verifyToken)('invalid-token');
-            expect(result.success).toBe(false);
-            expect(result.message).toContain('Invalid token');
+            const payload = (0, auth_service_1.verifyToken)('invalid-token');
+            expect(payload).toBeNull();
         });
         it('should reject expired token', async () => {
             const expiredToken = jsonwebtoken_1.default.sign({ userId: 'test-id', email: 'test@example.com' }, process.env.JWT_SECRET, { expiresIn: '-1h' });
-            const result = await (0, auth_service_1.verifyToken)(expiredToken);
-            expect(result.success).toBe(false);
-            expect(result.message).toContain('Invalid token');
+            const payload = (0, auth_service_1.verifyToken)(expiredToken);
+            expect(payload).toBeNull();
         });
     });
     describe('changePassword', () => {
         let userId;
+        let token;
         beforeEach(async () => {
             const result = await (0, auth_service_1.registerUser)('test@example.com', 'password123', 'John', 'Doe', 'user');
             userId = result.user._id.toString();
+            token = result.token;
         });
         it('should change password with valid current password', async () => {
             const result = await (0, auth_service_1.changePassword)(userId, 'password123', 'newpassword123');

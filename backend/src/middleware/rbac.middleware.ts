@@ -21,7 +21,7 @@ export const ROLES = {
 export type UserRole = typeof ROLES[keyof typeof ROLES];
 
 // Define permissions for each role
-const PERMISSIONS = {
+const PERMISSIONS: Record<UserRole, string[]> = {
   [ROLES.ADMIN]: [
     'users:read',
     'users:write',
@@ -47,13 +47,13 @@ const PERMISSIONS = {
     'profile:read',
     'profile:write'
   ]
-} as const;
+};
 
 /**
  * Check if user has required permission
  */
 function hasPermission(userRole: UserRole, requiredPermission: string): boolean {
-  const userPermissions = PERMISSIONS[userRole] || [];
+  const userPermissions = PERMISSIONS[userRole];
   return userPermissions.includes(requiredPermission);
 }
 
@@ -257,7 +257,7 @@ export function requireTeamAccess(req: AuthenticatedRequest, res: Response, next
  * Get user permissions
  */
 export function getUserPermissions(role: UserRole): string[] {
-  return PERMISSIONS[role] || [];
+  return [...PERMISSIONS[role]];
 }
 
 /**

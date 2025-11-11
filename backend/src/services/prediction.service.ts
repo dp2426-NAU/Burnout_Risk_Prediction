@@ -55,9 +55,14 @@ export async function generatePrediction(
     }
     
     // Get prediction from ML service
+    const featurePayload = Object.entries(features).reduce<Record<string, number>>((acc, [key, value]) => {
+      acc[key] = typeof value === 'number' ? value : Number(value ?? 0);
+      return acc;
+    }, {});
+
     const mlPrediction = await mlApiClient.predictBurnoutRisk(
       userId,
-      features as Record<string, number>,
+      featurePayload,
       'latest'
     );
     

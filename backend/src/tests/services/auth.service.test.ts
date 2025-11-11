@@ -84,7 +84,7 @@ describe('Auth Service', () => {
         userData.role
       );
 
-      const user = await User.findOne({ email: userData.email });
+      const user = await User.findOne({ email: userData.email }).select('+password');
       expect(user?.password).not.toBe(userData.password);
       expect(user?.password).toMatch(/^\$2[aby]\$/); // bcrypt hash format
     });
@@ -144,18 +144,16 @@ describe('Auth Service', () => {
         'user'
       );
 
-      const result = await verifyToken(registerResult.token!);
+      const payload = verifyToken(registerResult.token!);
 
-      expect(result.success).toBe(true);
-      expect(result.user).toBeDefined();
-      expect(result.user?.email).toBe('test@example.com');
+      expect(payload).not.toBeNull();
+      expect(payload?.email).toBe('test@example.com');
     });
 
     it('should reject invalid token', async () => {
-      const result = await verifyToken('invalid-token');
+      const payload = verifyToken('invalid-token');
 
-      expect(result.success).toBe(false);
-      expect(result.message).toContain('Invalid token');
+      expect(payload).toBeNull();
     });
 
     it('should reject expired token', async () => {
@@ -166,10 +164,9 @@ describe('Auth Service', () => {
         { expiresIn: '-1h' } // Expired 1 hour ago
       );
 
-      const result = await verifyToken(expiredToken);
+      const payload = verifyToken(expiredToken);
 
-      expect(result.success).toBe(false);
-      expect(result.message).toContain('Invalid token');
+      expect(payload).toBeNull();
     });
   });
 

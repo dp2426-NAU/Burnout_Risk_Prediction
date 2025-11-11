@@ -78,18 +78,18 @@ export class MLApiClient {
       });
 
       if (!response.ok) {
-        const errorData: MLErrorResponse = await response.json();
+        const errorData = (await response.json()) as MLErrorResponse;
         throw new Error(`ML API error: ${errorData.detail}`);
       }
 
-      const prediction: MLPredictionResponse = await response.json();
+      const prediction = (await response.json()) as MLPredictionResponse;
 
       logger.info(`Received prediction from ML service: ${prediction.riskLevel} (${prediction.riskScore})`);
 
       return prediction;
 
-    } catch (error) {
-      logger.error(`Error calling ML API: ${error}`);
+    } catch (error: unknown) {
+      logger.error('Error calling ML API:', error);
 
       // Return fallback prediction if ML service is unavailable
       return this.getFallbackPrediction(userId, features);
@@ -110,10 +110,10 @@ export class MLApiClient {
         throw new Error(`ML training failed: ${errorText}`);
       }
 
-      const summary: MLTrainingSummary = await response.json();
+      const summary = (await response.json()) as MLTrainingSummary;
       logger.info('ML service retraining completed successfully');
       return summary;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error triggering ML retraining:', error);
       throw error;
     }
@@ -141,9 +141,9 @@ export class MLApiClient {
         throw error;
       }
 
-      const report: MLEdaReport = await response.json();
+      const report = (await response.json()) as MLEdaReport;
       return report;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error fetching EDA report from ML service:', error);
       throw error;
     }
@@ -173,8 +173,8 @@ export class MLApiClient {
       });
 
       return response.ok;
-    } catch (error) {
-      logger.error(`ML service health check failed: ${error}`);
+    } catch (error: unknown) {
+      logger.error('ML service health check failed:', error);
       return false;
     }
   }
@@ -206,10 +206,10 @@ export class MLApiClient {
       
       clearTimeout(timeoutId);
       return response;
-    } catch (error) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
       
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Request timeout after ${this.timeout}ms`);
       }
       

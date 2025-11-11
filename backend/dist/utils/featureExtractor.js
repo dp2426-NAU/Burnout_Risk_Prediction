@@ -19,7 +19,7 @@ async function extractCalendarFeatures(userId, startDate, endDate) {
         let meetingDuration = 0;
         let backToBackMeetings = 0;
         let virtualMeetings = 0;
-        const totalEvents = events.length;
+        let totalEvents = events.length;
         let totalDuration = 0;
         let focusTime = 0;
         let breakTime = 0;
@@ -109,7 +109,7 @@ async function extractCalendarFeatures(userId, startDate, endDate) {
 async function extractEmailFeatures(userId, startDate, endDate) {
     try {
         const emails = await emailMessage_model_1.EmailMessage.findByUserAndDateRange(userId, startDate, endDate);
-        const emailCount = emails.length;
+        let emailCount = emails.length;
         let totalLength = 0;
         let stressEmailCount = 0;
         let urgentEmailCount = 0;

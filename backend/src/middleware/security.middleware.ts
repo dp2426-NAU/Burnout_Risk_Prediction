@@ -258,11 +258,23 @@ export const preventXSS = (req: Request, res: Response, next: NextFunction): voi
 /**
  * File upload security middleware
  */
+type UploadedFile = {
+  size: number;
+  mimetype?: string;
+  originalname?: string;
+  name?: string;
+};
+
 export const secureFileUpload = (req: Request, res: Response, next: NextFunction): void => {
   try {
+    const fileRequest = req as Request & {
+      files?: UploadedFile | UploadedFile[];
+    };
+
     // Check if request has file uploads
-    if (req.files) {
-      const files = Array.isArray(req.files) ? req.files : [req.files];
+    const uploadedFiles = fileRequest.files;
+    if (uploadedFiles) {
+      const files = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
       
       for (const file of files) {
         // Check file size
@@ -277,7 +289,8 @@ export const secureFileUpload = (req: Request, res: Response, next: NextFunction
         }
 
         // Check file type
-        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        const fileName = ('name' in file && file.name) ? file.name : file.originalname || '';
+        const fileExtension = fileName.split('.').pop()?.toLowerCase();
         if (!fileExtension || !securityConfig.allowedFileTypes.includes(`.${fileExtension}`)) {
           logger.warn(`Invalid file type: ${fileExtension} from IP: ${req.ip}`);
           res.status(400).json({
@@ -302,7 +315,7 @@ export const secureFileUpload = (req: Request, res: Response, next: NextFunction
 
     next();
 
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Error in file upload security:', error);
     res.status(500).json({
       success: false,

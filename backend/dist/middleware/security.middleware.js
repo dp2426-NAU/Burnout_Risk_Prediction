@@ -209,8 +209,10 @@ const preventXSS = (req, res, next) => {
 exports.preventXSS = preventXSS;
 const secureFileUpload = (req, res, next) => {
     try {
-        if (req.files) {
-            const files = Array.isArray(req.files) ? req.files : [req.files];
+        const fileRequest = req;
+        const uploadedFiles = fileRequest.files;
+        if (uploadedFiles) {
+            const files = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
             for (const file of files) {
                 if (file.size > securityConfig.maxFileSize) {
                     logger_1.logger.warn(`File size limit exceeded: ${file.size} bytes from IP: ${req.ip}`);
@@ -221,7 +223,8 @@ const secureFileUpload = (req, res, next) => {
                     });
                     return;
                 }
-                const fileExtension = file.name.split('.').pop()?.toLowerCase();
+                const fileName = ('name' in file && file.name) ? file.name : file.originalname || '';
+                const fileExtension = fileName.split('.').pop()?.toLowerCase();
                 if (!fileExtension || !securityConfig.allowedFileTypes.includes(`.${fileExtension}`)) {
                     logger_1.logger.warn(`Invalid file type: ${fileExtension} from IP: ${req.ip}`);
                     res.status(400).json({

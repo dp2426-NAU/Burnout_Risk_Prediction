@@ -28,6 +28,7 @@ const apiResponseCache = (ttlSeconds = 300) => {
                 next();
                 return;
             }
+            const cacheKey = generateCacheKey(req);
             const cachedResponse = await cache_service_1.cacheService.getApiResponse(req.path, req.query);
             if (cachedResponse) {
                 logger_1.logger.debug(`Cache hit for ${req.path}`);
@@ -170,6 +171,13 @@ const memoryMonitoring = (req, res, next) => {
     }
 };
 exports.memoryMonitoring = memoryMonitoring;
+function generateCacheKey(req) {
+    const queryString = Object.keys(req.query)
+        .sort()
+        .map(key => `${key}=${req.query[key]}`)
+        .join('&');
+    return `${req.method}:${req.path}:${queryString}`;
+}
 function optimizeResponseSize(body) {
     if (!body || typeof body !== 'object') {
         return body;

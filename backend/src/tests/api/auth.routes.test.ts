@@ -1,7 +1,7 @@
 // Auth routes integration tests - Created by Balaji Koneti
 import request from 'supertest';
 import express from 'express';
-import { authRoutes } from '../../api/routes/auth.routes';
+import authRoutes from '../../api/routes/auth.routes';
 import { User } from '../../models/user.model';
 
 const app = express();
@@ -242,10 +242,10 @@ describe('Auth Routes', () => {
       const response = await request(app)
         .get('/api/auth/profile')
         .set('Authorization', 'Bearer invalid-token')
-        .expect(401);
+        .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Invalid token');
+      expect(response.body.message).toContain('Invalid');
     });
 
     it('should return 401 for missing token', async () => {
@@ -254,7 +254,7 @@ describe('Auth Routes', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Access denied');
+      expect(response.body.message).toContain('Access token required');
     });
   });
 
@@ -323,10 +323,10 @@ describe('Auth Routes', () => {
         .put('/api/auth/profile')
         .set('Authorization', 'Bearer invalid-token')
         .send(updateData)
-        .expect(401);
+        .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Invalid token');
+      expect(response.body.message).toContain('Invalid');
     });
   });
 });

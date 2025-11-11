@@ -247,7 +247,8 @@ class CacheService {
 
   async getUserPredictions(userId: string): Promise<any[]> {
     const key = `${CACHE_PREFIXES.PREDICTION}user:${userId}`;
-    return this.get(key) || [];
+    const predictions = await this.get<any[]>(key);
+    return predictions ?? [];
   }
 
   // Dashboard Data Caching
@@ -307,17 +308,33 @@ class CacheService {
 
       const info = await this.redis.info('memory');
       const keyspace = await this.redis.info('keyspace');
+      const serverInfo = await this.redis.info('server');
+      const uptimeInSeconds = this.parseInfoValue(serverInfo, 'uptime_in_seconds');
       
       return {
         connected: this.isConnected,
         memory: info,
         keyspace: keyspace,
-        uptime: await this.redis.uptime(),
+        uptimeSeconds: uptimeInSeconds !== null ? Number(uptimeInSeconds) : null,
       };
     } catch (error) {
       logger.error('Error getting cache stats:', error);
       return null;
     }
+  }
+  
+  private parseInfoValue(info: string, key: string): string | null {
+    const line = info
+      .split('\n')
+      .map(entry => entry.trim())
+      .find(entry => entry.startsWith(`${key}:`));
+
+    if (!line) {
+      return null;
+    }
+
+    const [, value] = line.split(':', 2);
+    return value ?? null;
   }
 
   // Cache Health Check

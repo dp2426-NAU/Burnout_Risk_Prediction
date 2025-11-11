@@ -17,7 +17,7 @@ const ALERT_THRESHOLDS = {
 const metrics = [];
 const errorCounts = new Map();
 const requestCounts = new Map();
-const enhancedHealthCheck = async (req, res, _next) => {
+const enhancedHealthCheck = async (req, res, next) => {
     try {
         const healthData = await getSystemHealth();
         const isHealthy = healthData.status === 'healthy';
@@ -181,7 +181,7 @@ async function getSystemHealth() {
         logger_1.logger.error('Error getting system health:', error);
         return {
             status: 'unhealthy',
-            error: error.message,
+            error: error instanceof Error ? error.message : 'Unknown error',
         };
     }
 }

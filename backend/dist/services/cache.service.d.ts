@@ -29,6 +29,7 @@ declare class CacheService {
     blacklistToken(token: string): Promise<boolean>;
     isTokenBlacklisted(token: string): Promise<boolean>;
     getCacheStats(): Promise<any>;
+    private parseInfoValue;
     healthCheck(): Promise<boolean>;
     clearAll(): Promise<boolean>;
     clearByPattern(pattern: string): Promise<number>;

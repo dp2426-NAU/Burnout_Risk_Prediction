@@ -19,9 +19,10 @@ class RefreshTokenService {
                 email,
                 type: 'refresh'
             };
-            const refreshToken = jsonwebtoken_1.default.sign(payload, env_1.JWT_SECRET, {
+            const signOptions = {
                 expiresIn: this.refreshTokenExpiry
-            });
+            };
+            const refreshToken = jsonwebtoken_1.default.sign(payload, env_1.JWT_SECRET, signOptions);
             logger_1.logger.info(`Refresh token generated for user: ${email}`);
             return refreshToken;
         }
@@ -38,9 +39,10 @@ class RefreshTokenService {
                 role,
                 type: 'access'
             };
-            const accessToken = jsonwebtoken_1.default.sign(payload, env_1.JWT_SECRET, {
+            const signOptions = {
                 expiresIn: this.accessTokenExpiry
-            });
+            };
+            const accessToken = jsonwebtoken_1.default.sign(payload, env_1.JWT_SECRET, signOptions);
             logger_1.logger.info(`Access token generated for user: ${email}`);
             return accessToken;
         }
@@ -108,7 +110,7 @@ class RefreshTokenService {
             return false;
         }
     }
-    async isTokenBlacklisted(_token) {
+    async isTokenBlacklisted(token) {
         try {
             return false;
         }

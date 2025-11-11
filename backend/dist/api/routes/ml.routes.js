@@ -9,6 +9,5 @@ router.use(authenticate_middleware_1.authenticateRequest);
 router.use(rbac_middleware_1.requireAdmin);
 router.post('/retrain', ml_controller_1.retrainModels);
 router.get('/eda', ml_controller_1.fetchEdaReport);
-router.get('/metrics', ml_controller_1.fetchTrainingMetrics);
 exports.default = router;
 //# sourceMappingURL=ml.routes.js.map

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const prediction_controller_1 = require("../../controllers/prediction.controller");
-const authenticate_middleware_1 = require("../../middleware/authenticate.middleware");
+const auth_service_1 = require("../../services/auth.service");
 const router = (0, express_1.Router)();
 const generatePredictionValidation = [
     (0, express_validator_1.body)('startDate')
@@ -39,7 +39,34 @@ const historyQueryValidation = [
         .isInt({ min: 1, max: 100 })
         .withMessage('Limit must be between 1 and 100')
 ];
-router.use(authenticate_middleware_1.authenticateRequest);
+const authenticateToken = (req, res, next) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access token required'
+            });
+        }
+        const decoded = (0, auth_service_1.verifyToken)(token);
+        if (!decoded) {
+            return res.status(403).json({
+                success: false,
+                message: 'Invalid or expired token'
+            });
+        }
+        req.user = decoded;
+        next();
+    }
+    catch (error) {
+        return res.status(403).json({
+            success: false,
+            message: 'Invalid token'
+        });
+    }
+};
+router.use(authenticateToken);
 router.post('/', generatePredictionValidation, prediction_controller_1.generateNewPrediction);
 router.get('/latest', prediction_controller_1.getLatestUserPrediction);
 router.get('/history', historyQueryValidation, prediction_controller_1.getPredictionHistoryForUser);

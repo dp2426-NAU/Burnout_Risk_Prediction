@@ -28,7 +28,11 @@ async function generatePrediction(request) {
                 features.workLifeBalance = additionalData.jobSatisfaction;
             }
         }
-        const mlPrediction = await mlApiClient_service_1.mlApiClient.predictBurnoutRisk(userId, features, 'latest');
+        const featurePayload = Object.entries(features).reduce((acc, [key, value]) => {
+            acc[key] = typeof value === 'number' ? value : Number(value ?? 0);
+            return acc;
+        }, {});
+        const mlPrediction = await mlApiClient_service_1.mlApiClient.predictBurnoutRisk(userId, featurePayload, 'latest');
         const riskScore = mlPrediction.riskScore;
         const riskLevel = mlPrediction.riskLevel;
         const confidence = mlPrediction.confidence;
@@ -75,7 +79,7 @@ async function generatePrediction(request) {
         };
     }
 }
-function convertMLRecommendations(features, _riskLevel) {
+function convertMLRecommendations(features, riskLevel) {
     const recommendations = [];
     try {
         if (features.workloadLevel > 3) {

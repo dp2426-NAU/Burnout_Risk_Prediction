@@ -1,5 +1,5 @@
 // Refresh Token Service - Created by Balaji Koneti
-import jwt from 'jsonwebtoken';
+import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/env';
 import { logger } from '../utils/logger';
 
@@ -26,8 +26,8 @@ export interface TokenValidation {
 }
 
 class RefreshTokenService {
-  private readonly refreshTokenExpiry = '7d'; // Refresh tokens last 7 days
-  private readonly accessTokenExpiry = JWT_EXPIRES_IN;
+  private readonly refreshTokenExpiry: SignOptions['expiresIn'] = '7d'; // Refresh tokens last 7 days
+  private readonly accessTokenExpiry = JWT_EXPIRES_IN as SignOptions['expiresIn'];
 
   /**
    * Generate a new refresh token
@@ -40,9 +40,11 @@ class RefreshTokenService {
         type: 'refresh'
       };
 
-      const refreshToken = jwt.sign(payload, JWT_SECRET, {
+      const signOptions: SignOptions = {
         expiresIn: this.refreshTokenExpiry
-      });
+      };
+
+      const refreshToken = jwt.sign(payload, JWT_SECRET as Secret, signOptions);
 
       logger.info(`Refresh token generated for user: ${email}`);
       return refreshToken;
@@ -65,9 +67,11 @@ class RefreshTokenService {
         type: 'access'
       };
 
-      const accessToken = jwt.sign(payload, JWT_SECRET, {
+      const signOptions: SignOptions = {
         expiresIn: this.accessTokenExpiry
-      });
+      };
+
+      const accessToken = jwt.sign(payload, JWT_SECRET as Secret, signOptions);
 
       logger.info(`Access token generated for user: ${email}`);
       return accessToken;
@@ -83,7 +87,7 @@ class RefreshTokenService {
    */
   validateRefreshToken(token: string): TokenValidation {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET as Secret) as any;
       
       if (decoded.type !== 'refresh') {
         return {

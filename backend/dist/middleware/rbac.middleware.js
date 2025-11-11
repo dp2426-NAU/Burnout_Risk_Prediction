@@ -41,7 +41,7 @@ const PERMISSIONS = {
     ]
 };
 function hasPermission(userRole, requiredPermission) {
-    const userPermissions = PERMISSIONS[userRole] || [];
+    const userPermissions = PERMISSIONS[userRole];
     return userPermissions.includes(requiredPermission);
 }
 function hasRole(userRole, requiredRoles) {
@@ -190,7 +190,7 @@ function requireTeamAccess(req, res, next) {
     }
 }
 function getUserPermissions(role) {
-    return PERMISSIONS[role] || [];
+    return [...PERMISSIONS[role]];
 }
 function canUserPerformAction(role, action) {
     return hasPermission(role, action);

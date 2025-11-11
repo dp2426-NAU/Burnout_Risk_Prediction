@@ -1,10 +1,10 @@
 // Enhanced database configuration with connection pooling and retry logic - Created by Balaji Koneti
-import mongoose from 'mongoose';
+import mongoose, { ConnectOptions } from 'mongoose';
 import { MONGODB_URI, NODE_ENV } from './env';
 import { logger } from '../utils/logger';
 
 // Enhanced MongoDB connection options
-const mongoOptions = {
+const mongoOptions: ConnectOptions = {
   maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10'),
   minPoolSize: 2,
   maxIdleTimeMS: 30000,

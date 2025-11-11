@@ -24,15 +24,6 @@ export interface MLTrainingSummary {
     eda?: MLEdaReport;
     trained_samples?: number;
 }
-export interface MLTrainingMetrics {
-    summary: {
-        accuracy: number;
-        macro_f1: number;
-        roc_auc: number;
-    };
-    confusion_matrix: Record<string, Record<string, number>>;
-    classification_report: Record<string, unknown>;
-}
 export declare class MLApiClient {
     private baseUrl;
     private timeout;
@@ -40,8 +31,7 @@ export declare class MLApiClient {
     predictBurnoutRisk(userId: string, features: Record<string, number>, modelVersion?: string): Promise<MLPredictionResponse>;
     triggerTabularTraining(): Promise<MLTrainingSummary>;
     fetchEdaReport(): Promise<MLEdaReport>;
-    fetchTrainingMetrics(): Promise<MLTrainingMetrics>;
-    getPredictionHistory(userId: string, _limit?: number): Promise<MLPredictionResponse[]>;
+    getPredictionHistory(userId: string, limit?: number): Promise<MLPredictionResponse[]>;
     checkHealth(): Promise<boolean>;
     getModelVersions(): Promise<string[]>;
     private makeRequest;

@@ -4,7 +4,7 @@ exports.mlApiClient = exports.MLApiClient = void 0;
 const logger_1 = require("../utils/logger");
 class MLApiClient {
     constructor() {
-        this.baseUrl = process.env.ML_SERVICE_URL || 'http://localhost:8000';
+        this.baseUrl = process.env.ML_SERVICE_URL || 'http://localhost:8001';
         this.timeout = parseInt(process.env.ML_API_TIMEOUT || '10000');
         logger_1.logger.info(`ML API Client initialized with base URL: ${this.baseUrl}`);
     }
@@ -26,15 +26,15 @@ class MLApiClient {
                 body: JSON.stringify(body)
             });
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = (await response.json());
                 throw new Error(`ML API error: ${errorData.detail}`);
             }
-            const prediction = await response.json();
+            const prediction = (await response.json());
             logger_1.logger.info(`Received prediction from ML service: ${prediction.riskLevel} (${prediction.riskScore})`);
             return prediction;
         }
         catch (error) {
-            logger_1.logger.error(`Error calling ML API: ${error}`);
+            logger_1.logger.error('Error calling ML API:', error);
             return this.getFallbackPrediction(userId, features);
         }
     }
@@ -50,7 +50,7 @@ class MLApiClient {
                 const errorText = await response.text();
                 throw new Error(`ML training failed: ${errorText}`);
             }
-            const summary = await response.json();
+            const summary = (await response.json());
             logger_1.logger.info('ML service retraining completed successfully');
             return summary;
         }
@@ -78,7 +78,7 @@ class MLApiClient {
                 error.status = response.status;
                 throw error;
             }
-            const report = await response.json();
+            const report = (await response.json());
             return report;
         }
         catch (error) {
@@ -86,34 +86,7 @@ class MLApiClient {
             throw error;
         }
     }
-    async fetchTrainingMetrics() {
-        try {
-            const response = await this.makeRequest('/metrics', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (response.status === 404) {
-                const notFoundError = new Error('Training metrics not available');
-                notFoundError.status = 404;
-                throw notFoundError;
-            }
-            if (!response.ok) {
-                const errorText = await response.text();
-                const error = new Error(`Unable to fetch training metrics: ${errorText}`);
-                error.status = response.status;
-                throw error;
-            }
-            const metrics = await response.json();
-            return metrics;
-        }
-        catch (error) {
-            logger_1.logger.error('Error fetching training metrics from ML service:', error);
-            throw error;
-        }
-    }
-    async getPredictionHistory(userId, _limit = 10) {
+    async getPredictionHistory(userId, limit = 10) {
         logger_1.logger.warn('Prediction history endpoint not implemented in ML service. Returning empty list.');
         return [];
     }
@@ -128,7 +101,7 @@ class MLApiClient {
             return response.ok;
         }
         catch (error) {
-            logger_1.logger.error(`ML service health check failed: ${error}`);
+            logger_1.logger.error('ML service health check failed:', error);
             return false;
         }
     }
@@ -149,7 +122,7 @@ class MLApiClient {
         }
         catch (error) {
             clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
+            if (error instanceof Error && error.name === 'AbortError') {
                 throw new Error(`Request timeout after ${this.timeout}ms`);
             }
             throw error;

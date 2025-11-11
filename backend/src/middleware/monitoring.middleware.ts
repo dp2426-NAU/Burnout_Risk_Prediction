@@ -249,11 +249,11 @@ async function getSystemHealth(): Promise<any> {
         activeConnections: databaseStats.retryCount,
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Error getting system health:', error);
     return {
       status: 'unhealthy',
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -297,7 +297,7 @@ async function checkAlertConditions(): Promise<void> {
       await sendAlert(`High response time: ${avgResponseTime}ms`, 'warning');
     }
     
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Error checking alert conditions:', error);
   }
 }
