@@ -102,9 +102,15 @@ describe('DashboardPage', () => {
     });
 
     expect(screen.getByText('Burnout Risk Assessment')).toBeInTheDocument();
-    expect(screen.getByText('MEDIUM')).toBeInTheDocument();
-    expect(screen.getByText('65/100')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
+    // Use getAllByText since MEDIUM appears multiple times (in RiskCard and Quick Stats)
+    const mediumElements = screen.getAllByText('MEDIUM');
+    expect(mediumElements.length).toBeGreaterThan(0);
+    // Use getAllByText since 65/100 appears multiple times (in RiskCard and Quick Stats)
+    const scoreElements = screen.getAllByText('65/100');
+    expect(scoreElements.length).toBeGreaterThan(0);
+    // Use getAllByText since 85% appears multiple times (in RiskCard and Quick Stats)
+    const confidenceElements = screen.getAllByText('85%');
+    expect(confidenceElements.length).toBeGreaterThan(0);
   });
 
   it('shows loading state when data is being fetched', () => {

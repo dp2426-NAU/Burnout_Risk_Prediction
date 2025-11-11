@@ -231,24 +231,43 @@ describe('useAuth Hook', () => {
 
   describe('logout', () => {
     it('should clear user state and token', async () => {
+      const mockUser = {
+        id: '1',
+        email: 'test@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        role: 'user',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+      const mockToken = 'auth-token';
+
+      // First, login to set initial state
+      (authService.login as any).mockResolvedValue({
+        success: true,
+        data: {
+          user: mockUser,
+          token: mockToken,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      // Set initial state
-      act(() => {
-        result.current.user = {
-          id: '1',
-          email: 'test@example.com',
-          firstName: 'John',
-          lastName: 'Doe',
-          role: 'user',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-        };
-        result.current.token = 'auth-token';
+      // Login first
+      await act(async () => {
+        await result.current.login('test@example.com', 'password123');
       });
 
+      // Verify user is logged in
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.token).toBe(mockToken);
+
+      // Clear mocks
+      vi.clearAllMocks();
+
+      // Now logout
       act(() => {
         result.current.logout();
       });
@@ -272,15 +291,27 @@ describe('useAuth Hook', () => {
       };
       const mockToken = 'auth-token';
 
-      // Set initial state
+      // First, login to set initial state
+      (authService.login as any).mockResolvedValue({
+        success: true,
+        data: {
+          user: mockUser,
+          token: mockToken,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      act(() => {
-        result.current.user = mockUser;
-        result.current.token = mockToken;
+      // Login first
+      await act(async () => {
+        await result.current.login('test@example.com', 'password123');
       });
+
+      // Verify user is logged in
+      expect(result.current.user).toEqual(mockUser);
+      expect(result.current.token).toBe(mockToken);
 
       const updatedUser = { ...mockUser, firstName: 'Jane' };
       (authService.updateProfile as any).mockResolvedValue({
@@ -298,13 +329,33 @@ describe('useAuth Hook', () => {
     });
 
     it('should handle update failure', async () => {
+      const mockUser = {
+        id: '1',
+        email: 'test@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        role: 'user',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
       const mockToken = 'auth-token';
+
+      // First, login to set initial state
+      (authService.login as any).mockResolvedValue({
+        success: true,
+        data: {
+          user: mockUser,
+          token: mockToken,
+        },
+      });
+
       const { result } = renderHook(() => useAuth(), {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      act(() => {
-        result.current.token = mockToken;
+      // Login first
+      await act(async () => {
+        await result.current.login('test@example.com', 'password123');
       });
 
       (authService.updateProfile as any).mockResolvedValue({

@@ -36,3 +36,10 @@ global.console = {
   warn: vi.fn(),
   error: vi.fn(),
 };
+
+// Mock ResizeObserver (required by recharts)
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as any;
