@@ -1,6 +1,0 @@
-enron dataset = https://www.cs.cmu.edu/~enron/
-Kaggle = https://www.kaggle.com/datasets/ankam6010/synthetic-hr-burnout-dataset
-Work related stress = https://figshare.com/articles/dataset/Assessment_of_work-related_stress_and_burnout_among-clinical_research_occupations/22631374
-National burnout survey = https://data.mendeley.com/datasets/95cmh2ftwk/1
-Meeting Conversation dataset = https://www.kaggle.com/datasets/bumbiedumb/meeting-conversation-dataset
-meeting bank dataset = https://meetingbank.github.io/

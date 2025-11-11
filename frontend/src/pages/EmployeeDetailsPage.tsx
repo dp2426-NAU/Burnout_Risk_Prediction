@@ -22,6 +22,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
+import type { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { dashboardService, DashboardData } from '../services/dashboardService';
 import Chart from '../components/Chart';
 import RecommendationList from '../components/RecommendationList';
@@ -98,6 +99,22 @@ const EmployeeDetailsPage: React.FC = () => {
     const percentValue = rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence;
     return Math.min(100, Math.max(0, percentValue));
   }, [data?.confidence]);
+
+  const formatTooltipValue = (value: ValueType | undefined) => {
+    if (typeof value === 'number') {
+      return value.toFixed(1);
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      if (!Number.isNaN(parsed)) {
+        return parsed.toFixed(1);
+      }
+      return value;
+    }
+
+    return value ?? 'N/A';
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -234,8 +251,8 @@ const EmployeeDetailsPage: React.FC = () => {
                                   <div className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow">
                                     <p className="font-semibold text-gray-900">{score?.payload?.week}</p>
                                     <p className="text-gray-600">Score: {score?.value}</p>
-                                    <p className="text-gray-600">Workload: {workload?.value?.toFixed?.(1) || workload?.value}</p>
-                                    <p className="text-gray-600">Stress: {stress?.value?.toFixed?.(1) || stress?.value}</p>
+                                    <p className="text-gray-600">Workload: {formatTooltipValue(workload?.value as ValueType | undefined)}</p>
+                                    <p className="text-gray-600">Stress: {formatTooltipValue(stress?.value as ValueType | undefined)}</p>
                                   </div>
                                 );
                               }

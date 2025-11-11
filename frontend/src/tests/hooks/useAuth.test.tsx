@@ -22,6 +22,7 @@ const mockLocalStorage = {
 
 Object.defineProperty(window, 'localStorage', {
   value: mockLocalStorage,
+  writable: true,
 });
 
 describe('useAuth Hook', () => {
@@ -55,7 +56,7 @@ describe('useAuth Hook', () => {
         lastName: 'Doe',
         role: 'user',
         isActive: true,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       };
 
       mockLocalStorage.getItem.mockReturnValue(mockToken);
@@ -98,7 +99,7 @@ describe('useAuth Hook', () => {
         lastName: 'Doe',
         role: 'user',
         isActive: true,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       };
       const mockToken = 'auth-token';
 
@@ -114,7 +115,7 @@ describe('useAuth Hook', () => {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      let loginResult: boolean;
+      let loginResult = false;
       await act(async () => {
         loginResult = await result.current.login('test@example.com', 'password123');
       });
@@ -135,7 +136,7 @@ describe('useAuth Hook', () => {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      let loginResult: boolean;
+      let loginResult = false;
       await act(async () => {
         loginResult = await result.current.login('test@example.com', 'wrongpassword');
       });
@@ -152,7 +153,7 @@ describe('useAuth Hook', () => {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      let loginResult: boolean;
+      let loginResult = false;
       await act(async () => {
         loginResult = await result.current.login('test@example.com', 'password123');
       });
@@ -170,7 +171,7 @@ describe('useAuth Hook', () => {
         lastName: 'Doe',
         role: 'user',
         isActive: true,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       };
       const mockToken = 'auth-token';
 
@@ -186,7 +187,7 @@ describe('useAuth Hook', () => {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      let registerResult: boolean;
+      let registerResult = false;
       await act(async () => {
         registerResult = await result.current.register(
           'test@example.com',
@@ -212,7 +213,7 @@ describe('useAuth Hook', () => {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      let registerResult: boolean;
+      let registerResult = false;
       await act(async () => {
         registerResult = await result.current.register(
           'test@example.com',
@@ -243,7 +244,7 @@ describe('useAuth Hook', () => {
           lastName: 'Doe',
           role: 'user',
           isActive: true,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         };
         result.current.token = 'auth-token';
       });
@@ -267,7 +268,7 @@ describe('useAuth Hook', () => {
         lastName: 'Doe',
         role: 'user',
         isActive: true,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       };
       const mockToken = 'auth-token';
 
@@ -287,7 +288,7 @@ describe('useAuth Hook', () => {
         data: { user: updatedUser },
       });
 
-      let updateResult: boolean;
+      let updateResult = false;
       await act(async () => {
         updateResult = await result.current.updateProfile({ firstName: 'Jane' });
       });
@@ -311,7 +312,7 @@ describe('useAuth Hook', () => {
         message: 'Update failed',
       });
 
-      let updateResult: boolean;
+      let updateResult = false;
       await act(async () => {
         updateResult = await result.current.updateProfile({ firstName: 'Jane' });
       });
@@ -324,7 +325,7 @@ describe('useAuth Hook', () => {
         wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
       });
 
-      let updateResult: boolean;
+      let updateResult = false;
       await act(async () => {
         updateResult = await result.current.updateProfile({ firstName: 'Jane' });
       });

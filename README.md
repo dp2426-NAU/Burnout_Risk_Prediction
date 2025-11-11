@@ -3,8 +3,6 @@
 [![Production Ready](https://img.shields.io/badge/Production-Ready-green.svg)](https://github.com/yourusername/burnout-prediction-system)
 [![Test Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg)](https://github.com/yourusername/burnout-prediction-system)
 [![Security](https://img.shields.io/badge/Security-Hardened-blue.svg)](https://github.com/yourusername/burnout-prediction-system)
-[![Docker](https://img.shields.io/badge/Docker-Containerized-blue.svg)](https://github.com/yourusername/burnout-prediction-system)
-
 A comprehensive, production-ready system for predicting burnout risk in hybrid and remote teams using machine learning, real-time data collection, and advanced analytics.
 
 ## 🎯 Overview
@@ -20,7 +18,7 @@ This system analyzes employee behavior patterns from calendar events, email comm
 - **⚡ High Performance**: Redis caching, database optimization, response compression
 - **🔍 Monitoring**: Health checks, metrics collection, structured logging, alerting
 - **🧪 80%+ Test Coverage**: Unit, integration, and component tests across all services
-- **🐳 Production Ready**: Docker containers, CI/CD pipeline, automated deployment
+- **🚀 Operational Tooling**: Automated testing, linting, and observability integrations out of the box
 
 ## 🏗️ Architecture
 
@@ -34,9 +32,9 @@ This system analyzes employee behavior patterns from calendar events, email comm
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Nginx         │    │   MongoDB       │    │   Redis         │
-│   Load Balancer │    │   Database      │    │   Cache         │
-│   Port: 80/443  │    │   Port: 27017   │    │   Port: 6379    │
+│                 │    │   MongoDB       │    │   Redis         │
+│  (Optional)     │    │   Database      │    │   Cache         │
+│  Edge Proxy     │    │   Port: 27017   │    │   Port: 6379    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -46,43 +44,30 @@ This system analyzes employee behavior patterns from calendar events, email comm
 
 - **Node.js**: v18.17.0 or higher
 - **Python**: 3.9 or higher
-- **Docker**: 20.10 or higher
-- **Docker Compose**: 2.0 or higher
+- **MongoDB**: v6.x (local install or managed cluster)
+- **Redis**: v7.x (local install or managed cache)
 
-### Option 1: Docker Compose (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/burnout-prediction-system.git
-cd burnout-prediction-system
-
-# Run deployment script
-# For Linux/Mac:
-chmod +x deploy.sh
-./deploy.sh
-
-# For Windows:
-deploy.bat
-```
-
-### Option 2: Manual Setup
+### Manual Setup
 
 ```bash
-# 1. Start services
-docker-compose up -d
+# 1. Ensure MongoDB and Redis are running locally (or update connection strings accordingly)
 
-# 2. Install dependencies
+# 2. Configure environments
+cp backend/env.example backend/.env
+echo "VITE_API_URL=http://localhost:3001/api" > frontend/.env
+
+# 3. Install dependencies
 cd backend && npm install
 cd ../frontend && npm install
 cd ../ml && pip install -r requirements.txt
 
-# 3. Generate user data
+# 4. (Optional) generate demo user data
 cd backend && npm run generate-users
 
-# 4. Access the application
-# Frontend: http://localhost:5173
-# Backend: http://localhost:3001
-# ML Service: http://localhost:8000
+# 5. Start each service in separate terminals
+cd backend && npm run dev          # http://localhost:3001
+cd frontend && npm run dev         # http://localhost:5173
+cd ml && uvicorn src.api.server:app --host 0.0.0.0 --port 8001
 ```
 
 ## 🔐 Login Credentials
@@ -203,36 +188,26 @@ GMAIL_CLIENT_SECRET=your-gmail-client-secret
 
 ### Production Deployment
 
-1. **VPS/Cloud Deployment**
-   ```bash
-   # Use production Docker Compose
-   docker-compose -f docker-compose.prod.yml up -d
-   ```
-
-2. **Kubernetes Deployment**
-   ```bash
-   kubectl apply -f k8s/
-   ```
-
-3. **Cloud Platform Deployment**
-   - AWS ECS/EC2
-   - Google Cloud Run
-   - Azure Container Instances
+The stack can be deployed on traditional servers or platform services:
+1. Provision MongoDB and Redis (managed services or dedicated VMs).
+2. Deploy the backend (Node.js) service behind a process manager such as PM2 or systemd.
+3. Serve the frontend using a static host (Vite build output) or a lightweight web server.
+4. Host the ML FastAPI service with Uvicorn/Gunicorn behind an HTTP proxy.
 
 ### CI/CD Pipeline
 
 The system includes automated CI/CD with GitHub Actions:
 - Automated testing
 - Security scanning
-- Docker image building
-- Deployment automation
+- Build and packaging steps for backend/frontend
+- Deployment automation hooks (customise for your environment)
 
 ## 📈 Monitoring
 
 ### Health Checks
-- **Backend**: `http://localhost:3001/health`
-- **ML Service**: `http://localhost:8000/health`
-- **Frontend**: `http://localhost:5173/health`
+- **Backend**: `http://localhost:3001/api/health`
+- **ML Service**: `http://localhost:8001/health`
+- **Frontend**: provide a lightweight `/health` endpoint if exposing publicly
 
 ### Metrics
 - Request/response metrics
@@ -290,7 +265,6 @@ For support and questions:
 - **Framework**: React, Node.js, Python, FastAPI
 - **Database**: MongoDB, Redis
 - **ML Libraries**: Scikit-learn, TensorFlow, Pandas, NumPy
-- **Deployment**: Docker, Docker Compose, Kubernetes
 
 ---
 

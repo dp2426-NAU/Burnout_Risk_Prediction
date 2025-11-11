@@ -1,6 +1,6 @@
 # Testing Strategy
 
-This document outlines recommended regression testing across the ML service, NestJS backend, and Next.js frontend.
+This document outlines recommended regression testing across the ML service, Express backend, and React frontend.
 
 ---
 
@@ -20,44 +20,46 @@ Key checks:
 
 ---
 
-## 2. NestJS Backend
+## 2. Express Backend
 
-| Layer                | Tooling         | How to run                                      |
-|----------------------|-----------------|-------------------------------------------------|
-| Unit / integration    | `jest`, `supertest` | `cd backend-nest && npm run test`                |
-| E2E with database     | `jest --config test/jest-e2e.json` | `cd backend-nest && npm run test:e2e` |
-| Lint                  | `eslint`        | `npm run lint`                                   |
+| Layer               | Tooling                | How to run                               |
+|---------------------|------------------------|-------------------------------------------|
+| Unit / integration  | `jest`, `supertest`    | `cd backend && npm run test`             |
+| Coverage            | `jest --coverage`      | `cd backend && npm run test:coverage`    |
+| Lint                | `eslint`               | `cd backend && npm run lint`             |
 
 Recommended scenarios:
-1. Auth: register/login, JWT refresh, role-guarded routes.
-2. Predictions: `/predictions/self`, admin `/predictions/:id`, persisted BurnoutScore fields.
-3. Dashboards: `/employee/dashboard`, `/admin/employees`, `/admin/metrics` response shape.
-4. Prisma migrations: run in CI against a disposable Postgres container.
+1. Auth: registration/login, JWT refresh, role-based route protection.
+2. Predictions: `/api/predictions/self`, `/api/predictions/:id`, cache invalidation.
+3. Metadata: `/api/info`, `/api/health`, monitoring endpoints.
+4. ML integration: mock the FastAPI service and validate request/response handling.
 
 ---
 
-## 3. Next.js Frontend
+## 3. React Frontend
 
-| Layer                 | Tooling                  | How to run                          |
-|-----------------------|--------------------------|--------------------------------------|
-| Static analysis       | `eslint`                | `cd frontend-next && npm run lint`   |
-| Component tests       | `vitest`, `jest-dom` (optional) | Set up in `frontend-next/src/__tests__` |
-| Integration / e2e     | `Playwright` or `Cypress` | Example: `npx playwright test`       |
+| Layer                 | Tooling                       | How to run                            |
+|-----------------------|-------------------------------|----------------------------------------|
+| Static analysis       | `eslint`                      | `cd frontend && npm run lint`          |
+| Component tests       | `vitest`, `@testing-library`  | `cd frontend && npm run test`          |
+| Coverage              | `vitest --coverage`           | `cd frontend && npm run test:coverage` |
+| E2E (optional)        | `Cypress` or `Playwright`     | Configure in `frontend/tests/e2e`      |
 
 Suggested end-to-end flows (using Playwright/Cypress):
-1. **Employee journey**: login → view dashboard → open detailed analysis → assert charts render.
+1. **Employee journey**: login → view dashboard → open detailed analysis → verify charts render.
 2. **Admin oversight**: login as admin → confirm risk breakdown, table filtering, metrics cards.
-3. **Prediction refresh**: trigger self prediction (mock backend) and detect UI update.
+3. **Prediction refresh**: mock backend prediction update and assert dashboard refresh behavior.
 
 ---
 
 ## 4. Automated Regression Pipeline
 
 Recommended CI workflow (GitHub Actions / GitLab CI):
-1. `npm ci` + lint + tests for `backend-nest`.
-2. Spin up ML service + backend + Postgres via Docker Compose and run Playwright/Cypress against Next frontend.
-3. Train ML models in a nightly schedule, commit updated artefacts or publish to object storage.
-4. Publish coverage reports and fail builds below agreed thresholds (e.g., 80%).
+1. `npm ci` + lint + tests for `backend`.
+2. `npm ci` + lint + tests for `frontend`.
+3. `pip install -r requirements.txt` + `pytest` for `ml`.
+4. Provision test instances of MongoDB, Redis, and the ML service (e.g., GitHub Actions service containers or a shared test environment) and run Playwright/Cypress against the Vite frontend.
+5. Publish coverage reports and fail builds below agreed thresholds (e.g., 80%).
 
 ---
 
