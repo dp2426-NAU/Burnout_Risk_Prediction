@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-export declare const enhancedHealthCheck: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const enhancedHealthCheck: (req: Request, res: Response, _next: NextFunction) => Promise<void>;
 export declare const metricsCollection: (req: Request, res: Response, next: NextFunction) => void;
 export declare const structuredLogging: (req: Request, res: Response, next: NextFunction) => void;
 export declare const alerting: (req: Request, res: Response, next: NextFunction) => void;

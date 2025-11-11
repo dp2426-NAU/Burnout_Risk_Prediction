@@ -17,7 +17,7 @@ declare class RefreshTokenService {
     validateRefreshToken(token: string): TokenValidation;
     refreshAccessToken(refreshToken: string, userRole: string): Promise<RefreshTokenResponse>;
     revokeRefreshToken(token: string): Promise<boolean>;
-    isTokenBlacklisted(token: string): Promise<boolean>;
+    isTokenBlacklisted(_token: string): Promise<boolean>;
     getTokenExpiry(token: string): Date | null;
 }
 export declare const refreshTokenService: RefreshTokenService;

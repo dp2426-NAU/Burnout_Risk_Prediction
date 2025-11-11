@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { dashboardService, UserData } from '../services/dashboardService';
-import { LogOut, Users, BarChart3, AlertTriangle, CheckCircle } from 'lucide-react';
+import { LogOut, Users, BarChart3, AlertTriangle, CheckCircle, RefreshCw, Activity } from 'lucide-react';
+import { mlService, EdaReport, TrainingSummary } from '../services/mlService';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -18,6 +19,10 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [viewingAsUser, setViewingAsUser] = useState<UserData | null>(null);
+  const [edaReport, setEdaReport] = useState<EdaReport | null>(null);
+  const [trainingSummary, setTrainingSummary] = useState<TrainingSummary | null>(null);
+  const [trainingInProgress, setTrainingInProgress] = useState(false);
+  const [trainingMessage, setTrainingMessage] = useState('');
 
   useEffect(() => {
     loadAdminData();
@@ -30,10 +35,21 @@ const AdminDashboard: React.FC = () => {
       
       // Load admin dashboard data (includes users, predictions, and stats)
       const adminData = await dashboardService.getAdminDashboardData();
+      const edaResponse = await mlService.fetchEdaReport();
       
       console.log('Loaded users:', adminData.users.length);
       console.log('Loaded predictions:', adminData.predictions.length);
       console.log('Stats:', adminData.stats);
+      if (edaResponse.success && edaResponse.data) {
+        setEdaReport(edaResponse.data);
+        console.log('EDA label distribution:', edaResponse.data.label_distribution);
+        console.log('Top correlations:', edaResponse.data.top_correlations);
+      } else {
+        setEdaReport(null);
+        if (edaResponse.message) {
+          console.warn('EDA report unavailable:', edaResponse.message);
+        }
+      }
       
       setUsers(adminData.users);
       setPredictions(adminData.predictions);
@@ -49,6 +65,30 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleRetrain = async () => {
+    try {
+      setTrainingInProgress(true);
+      setTrainingMessage('');
+      const response = await mlService.triggerRetraining();
+      if (response.success && response.data) {
+        setTrainingSummary(response.data);
+        setTrainingMessage('Retraining completed successfully.');
+        if (response.data.eda) {
+          setEdaReport(response.data.eda);
+          console.log('Updated EDA label distribution:', response.data.eda.label_distribution);
+          console.log('Updated top correlations:', response.data.eda.top_correlations);
+        }
+      } else {
+        setTrainingMessage(response.message || 'Retraining failed.');
+      }
+    } catch (err) {
+      console.error('Retraining error:', err);
+      setTrainingMessage('Retraining failed. Check logs for details.');
+    } finally {
+      setTrainingInProgress(false);
+    }
   };
 
   const getUserRiskLevel = (userId: string) => {
@@ -217,6 +257,115 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Model Operations & EDA</h3>
+              <p className="text-sm text-gray-600">
+                Review the latest training metrics and exploratory data analysis. Trigger a new training run after adding datasets.
+              </p>
+            </div>
+            <button
+              onClick={handleRetrain}
+              disabled={trainingInProgress}
+              className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${trainingInProgress ? 'animate-spin' : ''}`} />
+              {trainingInProgress ? 'Retraining...' : 'Retrain Models'}
+            </button>
+          </div>
+
+          {trainingMessage && (
+            <div className="mt-4 p-3 bg-blue-50 text-blue-700 rounded-md text-sm">
+              {trainingMessage}
+            </div>
+          )}
+
+          {trainingSummary && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+              <div className="bg-gray-50 rounded-md p-3">
+                <span className="font-medium text-gray-900 block">Trained Samples</span>
+                {trainingSummary.trained_samples ?? '--'}
+              </div>
+              <div className="bg-gray-50 rounded-md p-3">
+                <span className="font-medium text-gray-900 block">Models Trained</span>
+                {trainingSummary.advanced_trained ? 'Baseline & Advanced' : 'Baseline'}
+              </div>
+              <div className="bg-gray-50 rounded-md p-3">
+                <span className="font-medium text-gray-900 block">Metrics File</span>
+                {trainingSummary.metric_file || 'N/A'}
+              </div>
+            </div>
+          )}
+
+          {edaReport ? (
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 flex items-center">
+                    <Activity className="h-4 w-4 mr-2 text-primary-600" />
+                    Burnout Distribution
+                  </h4>
+                  <div className="mt-2 space-y-2">
+                    {Object.entries(edaReport.label_distribution).map(([label, count]) => (
+                      <div key={label} className="flex justify-between text-sm text-gray-700">
+                        <span className="capitalize">{label}</span>
+                        <span>{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Top Correlated Features</h4>
+                  <div className="mt-2 bg-gray-50 rounded-md p-3 text-xs text-gray-700 space-y-1">
+                    {Object.entries(edaReport.top_correlations).map(([feature, value]) => (
+                      <div key={feature} className="flex justify-between">
+                        <span className="truncate mr-2">{feature}</span>
+                        <span>{typeof value === 'number' ? value.toFixed(3) : value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Sample Records</h4>
+                  <pre className="mt-2 max-h-48 overflow-y-auto bg-gray-900 text-gray-100 text-xs rounded-md p-3">
+                    {JSON.stringify(edaReport.sample_rows.slice(0, 3), null, 2)}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {edaReport.charts?.label_distribution && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Label Distribution Chart</h4>
+                    <img
+                      src={`data:image/png;base64,${edaReport.charts.label_distribution}`}
+                      alt="Label distribution"
+                      className="mt-2 rounded-md border border-gray-200"
+                    />
+                  </div>
+                )}
+                {edaReport.charts?.correlation_heatmap && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Correlation Heatmap</h4>
+                    <img
+                      src={`data:image/png;base64,${edaReport.charts.correlation_heatmap}`}
+                      alt="Correlation heatmap"
+                      className="mt-2 rounded-md border border-gray-200"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">
+              EDA report not available yet. Trigger a training run to generate analytics.
+            </p>
+          )}
         </div>
 
         {/* Risk Distribution */}

@@ -102,7 +102,13 @@ class TrainingPipeline:
 
     accuracy = accuracy_score(labels_array, predictions)
     f1 = f1_score(labels_array, predictions, average="macro")
-    auc = roc_auc_score(labels_array, aggregated_probs, multi_class="ovo")
+    unique_classes = np.unique(labels_array)
+    if aggregated_probs.ndim == 1 or aggregated_probs.shape[1] == 1:
+      auc = roc_auc_score(labels_array, aggregated_probs if aggregated_probs.ndim == 1 else aggregated_probs.squeeze())
+    elif len(unique_classes) <= 2:
+      auc = roc_auc_score(labels_array, aggregated_probs[:, 1])
+    else:
+      auc = roc_auc_score(labels_array, aggregated_probs, multi_class="ovo")
 
     conf_matrix = confusion_matrix(labels_array, predictions)
     report = classification_report(labels_array, predictions, output_dict=True)

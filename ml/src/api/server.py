@@ -124,14 +124,31 @@ def create_app() -> FastAPI:
         snapshots = [snapshot.to_snapshot() for snapshot in request.snapshots]
         try:
             summary = SERVICE.train(snapshots)
-            return summary.to_dict()
+            return summary
         except Exception as exc:  # pragma: no cover - runtime safeguard
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.post("/train/tabular")
+    async def train_tabular():
+        try:
+            summary = SERVICE.train_from_tabular()
+            return summary
+        except Exception as exc:  # pragma: no cover
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     @app.get('/metrics')
     async def metrics():
       try:
         return SERVICE.get_metrics()
+      except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+      except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.get('/eda')
+    async def eda():
+      try:
+        return SERVICE.get_eda_report()
       except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
       except Exception as exc:  # pragma: no cover

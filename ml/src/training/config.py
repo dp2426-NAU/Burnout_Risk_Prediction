@@ -29,4 +29,12 @@ class TrainingConfig:
     def metrics_dir(self) -> Path:
         return self.model_dir / "metrics"
 
+    @property
+    def reports_dir(self) -> Path:
+        return self.model_dir / "reports"
+
+    @property
+    def eda_report_path(self) -> Path:
+        return self.reports_dir / "eda_report.json"
+
 

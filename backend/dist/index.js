@@ -14,8 +14,10 @@ const env_1 = require("./config/env");
 const logger_1 = require("./utils/logger");
 const auth_routes_1 = __importDefault(require("./api/routes/auth.routes"));
 const prediction_routes_1 = __importDefault(require("./api/routes/prediction.routes"));
+const ml_routes_1 = __importDefault(require("./api/routes/ml.routes"));
 const metadata_routes_1 = __importDefault(require("./api/routes/metadata.routes"));
 const users_routes_1 = __importDefault(require("./api/routes/users.routes"));
+const dashboard_routes_1 = __importDefault(require("./api/routes/dashboard.routes"));
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: {
@@ -79,6 +81,8 @@ app.use((req, res, next) => {
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/predictions', prediction_routes_1.default);
 app.use('/api/users', users_routes_1.default);
+app.use('/api/dashboard', dashboard_routes_1.default);
+app.use('/api/ml', ml_routes_1.default);
 app.use('/api', metadata_routes_1.default);
 app.get('/', (req, res) => {
     res.json({
@@ -105,7 +109,7 @@ app.use('*', (req, res) => {
         path: req.originalUrl
     });
 });
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
     logger_1.logger.error('Unhandled error:', error);
     res.status(500).json({
         success: false,

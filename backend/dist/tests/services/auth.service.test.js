@@ -104,11 +104,9 @@ describe('Auth Service', () => {
     });
     describe('changePassword', () => {
         let userId;
-        let token;
         beforeEach(async () => {
             const result = await (0, auth_service_1.registerUser)('test@example.com', 'password123', 'John', 'Doe', 'user');
             userId = result.user._id.toString();
-            token = result.token;
         });
         it('should change password with valid current password', async () => {
             const result = await (0, auth_service_1.changePassword)(userId, 'password123', 'newpassword123');

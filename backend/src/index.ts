@@ -12,6 +12,7 @@ import { logger, morganStream } from './utils/logger';
 // Import routes
 import authRoutes from './api/routes/auth.routes';
 import predictionRoutes from './api/routes/prediction.routes';
+import mlRoutes from './api/routes/ml.routes';
 import metadataRoutes from './api/routes/metadata.routes';
 import usersRoutes from './api/routes/users.routes';
 
@@ -95,6 +96,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/predictions', predictionRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/ml', mlRoutes);
 app.use('/api', metadataRoutes);
 
 // Root endpoint

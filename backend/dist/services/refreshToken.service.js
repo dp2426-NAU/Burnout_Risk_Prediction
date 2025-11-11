@@ -108,7 +108,7 @@ class RefreshTokenService {
             return false;
         }
     }
-    async isTokenBlacklisted(token) {
+    async isTokenBlacklisted(_token) {
         try {
             return false;
         }

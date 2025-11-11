@@ -4,13 +4,19 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
+import json
+import logging
 import joblib
 from .data_collection import CalendarCollector, CommunicationCollector, EmployeeSnapshot
 from .inference import BurnoutPredictor
 from .preprocessing import SentimentAnalyzer
 from .training import TrainingConfig, TrainingPipeline
+from .training.datasets import TabularDatasetLoader, DatasetSpec, default_dataset_specs
+from .training.eda import generate_eda_report, persist_eda_report
+
+logger = logging.getLogger(__name__)
 
 
 class BurnoutRiskService:
@@ -34,10 +40,29 @@ class BurnoutRiskService:
             advanced_dir=self.config.advanced_dir,
             sentiment_analyzer=self.sentiment_analyzer,
         )
-        return {
-            "baseline": summary.baseline_metrics,
-            "advanced_models_trained": summary.advanced_trained,
-        }
+        return summary.to_dict()
+
+    def train_from_tabular(
+        self,
+        dataset_specs: Optional[Sequence[DatasetSpec]] = None,
+    ) -> Dict[str, Any]:
+        base_dir = self.config.data_dir.parent.parent
+        specs = list(dataset_specs) if dataset_specs else default_dataset_specs(base_dir)
+        if not specs:
+            raise RuntimeError("No burnout datasets found under datasets/raw")
+
+        loader = TabularDatasetLoader(specs)
+        snapshots, eda_frame = loader.load()
+
+        summary = self.train(snapshots)
+
+        eda_report = generate_eda_report(eda_frame)
+        persist_eda_report(eda_report, self.config.eda_report_path)
+        self._log_eda_report(eda_report)
+
+        summary["eda"] = eda_report
+        summary["trained_samples"] = len(snapshots)
+        return summary
 
     # ------------------------------------------------------------------
     # Prediction operations
@@ -122,6 +147,19 @@ class BurnoutRiskService:
         if not metrics_file.exists():
             raise FileNotFoundError("Metrics file not found. Train models first.")
         return joblib.load(metrics_file)
+
+    def get_eda_report(self) -> Dict[str, Any]:
+        report_path = self.config.eda_report_path
+        if not report_path.exists():
+            raise FileNotFoundError("EDA report not available. Run training first.")
+        return json.loads(report_path.read_text(encoding="utf-8"))
+
+    def _log_eda_report(self, report: Dict[str, Any]) -> None:
+        label_distribution = report.get("label_distribution", {})
+        correlations = report.get("top_correlations", {})
+        logger.info("EDA label distribution: %s", label_distribution)
+        sorted_corr = sorted(correlations.items(), key=lambda item: abs(item[1]), reverse=True)[:5]
+        logger.info("Top correlated features: %s", sorted_corr)
 
     def _generate_recommendations(self, prediction) -> List[Dict[str, Any]]:
         # Simple inline recommendation for features-only payloads

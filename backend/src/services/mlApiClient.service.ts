@@ -20,6 +20,24 @@ export interface MLErrorResponse {
   detail: string;
 }
 
+export interface MLEdaReport {
+  summary: Record<string, Record<string, number>>;
+  label_distribution: Record<string, number>;
+  top_correlations: Record<string, number>;
+  charts: Record<string, string | null>;
+  sample_rows: Array<Record<string, unknown>>;
+}
+
+export interface MLTrainingSummary {
+  baseline_metrics: Record<string, Record<string, number>>;
+  advanced_trained: boolean;
+  confusion_matrix: Record<string, Record<string, number>>;
+  classification_report: Record<string, unknown>;
+  metric_file: string | null;
+  eda?: MLEdaReport;
+  trained_samples?: number;
+}
+
 export class MLApiClient {
   private baseUrl: string;
   private timeout: number;
@@ -75,6 +93,59 @@ export class MLApiClient {
 
       // Return fallback prediction if ML service is unavailable
       return this.getFallbackPrediction(userId, features);
+    }
+  }
+
+  async triggerTabularTraining(): Promise<MLTrainingSummary> {
+    try {
+      const response = await this.makeRequest('/train/tabular', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`ML training failed: ${errorText}`);
+      }
+
+      const summary: MLTrainingSummary = await response.json();
+      logger.info('ML service retraining completed successfully');
+      return summary;
+    } catch (error) {
+      logger.error('Error triggering ML retraining:', error);
+      throw error;
+    }
+  }
+
+  async fetchEdaReport(): Promise<MLEdaReport> {
+    try {
+      const response = await this.makeRequest('/eda', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 404) {
+        const notFoundError = new Error('EDA report not available');
+        (notFoundError as any).status = 404;
+        throw notFoundError;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        const error = new Error(`Unable to fetch EDA report: ${errorText}`);
+        (error as any).status = response.status;
+        throw error;
+      }
+
+      const report: MLEdaReport = await response.json();
+      return report;
+    } catch (error) {
+      logger.error('Error fetching EDA report from ML service:', error);
+      throw error;
     }
   }
 

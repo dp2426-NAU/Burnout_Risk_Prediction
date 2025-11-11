@@ -32,26 +32,41 @@ def load_snapshots(json_path: Path) -> list[EmployeeSnapshot]:
 
 def main():
   parser = argparse.ArgumentParser(description='Train burnout risk models')
-  parser.add_argument('--data', type=Path, required=True, help='Path to snapshot JSON file')
-  parser.add_argument('--model-dir', type=Path, default=Path('models/baseline'))
+  parser.add_argument('--data', type=Path, help='Path to snapshot JSON file (optional)')
+  parser.add_argument('--model-dir', type=Path, default=Path('models'))
   parser.add_argument('--advanced-dir', type=Path, default=Path('models/advanced'))
   parser.add_argument('--data-dir', type=Path, default=Path('data'))
   args = parser.parse_args()
 
+  data_dir = args.data_dir.resolve()
+  model_dir = args.model_dir.resolve()
+  advanced_dir = args.advanced_dir.resolve()
+
   config = TrainingConfig(
-    data_dir=args.data_dir,
-    model_dir=args.model_dir,
-    advanced_dir=args.advanced_dir,
+    data_dir=data_dir,
+    model_dir=model_dir,
+    advanced_dir=advanced_dir,
   )
 
   service = BurnoutRiskService(config, auto_load=False)
-  snapshots = load_snapshots(args.data)
 
-  summary = service.train(snapshots)
+  if args.data:
+    snapshots = load_snapshots(args.data)
+    summary = service.train(snapshots)
+  else:
+    summary = service.train_from_tabular()
+
   print('Training complete')
-  print('Baseline metrics:', summary.baseline_metrics)
-  print('Advanced models trained:', summary.advanced_trained)
-  print('Metrics stored at:', summary.metric_file)
+  print('Baseline metrics:', summary.get('baseline_metrics'))
+  print('Advanced models trained:', summary.get('advanced_trained'))
+  print('Confusion matrix:', summary.get('confusion_matrix'))
+  print('Classification report:', summary.get('classification_report'))
+  if summary.get('eda'):
+    print('Label distribution:', summary['eda'].get('label_distribution'))
+    print('Top correlations:', summary['eda'].get('top_correlations'))
+  if 'eda' in summary:
+    print('EDA summary keys:', list(summary['eda'].keys()))
+  print('Metrics stored at:', summary.get('metric_file'))
 
 
 if __name__ == '__main__':

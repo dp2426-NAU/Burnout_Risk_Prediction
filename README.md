@@ -17,6 +17,7 @@ This system analyzes employee behavior patterns from calendar events, email comm
 - **📈 Comprehensive Analytics**: Dashboard, trends, recommendations, team insights
 - **⚡ High Performance**: Redis caching, database optimization, response compression
 - **🔍 Monitoring**: Health checks, metrics collection, structured logging, alerting
+- **🧠 Dual Dataset Training**: Built-in loaders combine multiple CSV sources with automated EDA reports
 - **🧪 80%+ Test Coverage**: Unit, integration, and component tests across all services
 - **🚀 Operational Tooling**: Automated testing, linting, and observability integrations out of the box
 
@@ -68,7 +69,16 @@ cd backend && npm run generate-users
 cd backend && npm run dev          # http://localhost:3001
 cd frontend && npm run dev         # http://localhost:5173
 cd ml && uvicorn src.api.server:app --host 0.0.0.0 --port 8001
+
+# 6. (Optional) retrain models and refresh EDA insights
+cd ml && python -m src.training.cli
 ```
+
+### Retraining & EDA Insights
+
+- **CLI**: `cd ml && python -m src.training.cli` merges the CSVs in `datasets/raw/`, retrains the baseline models, and logs fresh EDA summaries (label distribution, feature correlations).
+- **Admin UI**: Admins can trigger retraining and view the latest EDA charts directly from the dashboard (`/admin`) using the "Retrain Models" button.
+- **API**: `POST /api/ml/retrain` kicks off retraining, while `GET /api/ml/eda` returns the most recent report for custom tooling.
 
 ## 🔐 Login Credentials
 

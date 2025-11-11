@@ -75,7 +75,7 @@ async function generatePrediction(request) {
         };
     }
 }
-function convertMLRecommendations(features, riskLevel) {
+function convertMLRecommendations(features, _riskLevel) {
     const recommendations = [];
     try {
         if (features.workloadLevel > 3) {

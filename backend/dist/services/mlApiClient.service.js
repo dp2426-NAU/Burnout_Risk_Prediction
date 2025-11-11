@@ -4,7 +4,7 @@ exports.mlApiClient = exports.MLApiClient = void 0;
 const logger_1 = require("../utils/logger");
 class MLApiClient {
     constructor() {
-        this.baseUrl = process.env.ML_SERVICE_URL || 'http://localhost:8001';
+        this.baseUrl = process.env.ML_SERVICE_URL || 'http://localhost:8000';
         this.timeout = parseInt(process.env.ML_API_TIMEOUT || '10000');
         logger_1.logger.info(`ML API Client initialized with base URL: ${this.baseUrl}`);
     }
@@ -38,7 +38,82 @@ class MLApiClient {
             return this.getFallbackPrediction(userId, features);
         }
     }
-    async getPredictionHistory(userId, limit = 10) {
+    async triggerTabularTraining() {
+        try {
+            const response = await this.makeRequest('/train/tabular', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`ML training failed: ${errorText}`);
+            }
+            const summary = await response.json();
+            logger_1.logger.info('ML service retraining completed successfully');
+            return summary;
+        }
+        catch (error) {
+            logger_1.logger.error('Error triggering ML retraining:', error);
+            throw error;
+        }
+    }
+    async fetchEdaReport() {
+        try {
+            const response = await this.makeRequest('/eda', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.status === 404) {
+                const notFoundError = new Error('EDA report not available');
+                notFoundError.status = 404;
+                throw notFoundError;
+            }
+            if (!response.ok) {
+                const errorText = await response.text();
+                const error = new Error(`Unable to fetch EDA report: ${errorText}`);
+                error.status = response.status;
+                throw error;
+            }
+            const report = await response.json();
+            return report;
+        }
+        catch (error) {
+            logger_1.logger.error('Error fetching EDA report from ML service:', error);
+            throw error;
+        }
+    }
+    async fetchTrainingMetrics() {
+        try {
+            const response = await this.makeRequest('/metrics', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.status === 404) {
+                const notFoundError = new Error('Training metrics not available');
+                notFoundError.status = 404;
+                throw notFoundError;
+            }
+            if (!response.ok) {
+                const errorText = await response.text();
+                const error = new Error(`Unable to fetch training metrics: ${errorText}`);
+                error.status = response.status;
+                throw error;
+            }
+            const metrics = await response.json();
+            return metrics;
+        }
+        catch (error) {
+            logger_1.logger.error('Error fetching training metrics from ML service:', error);
+            throw error;
+        }
+    }
+    async getPredictionHistory(userId, _limit = 10) {
         logger_1.logger.warn('Prediction history endpoint not implemented in ML service. Returning empty list.');
         return [];
     }

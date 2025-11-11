@@ -88,10 +88,18 @@ class BaselineModelSuite:
         for name, model in self.models.items():
             preds = model.predict(features)
             proba = model.predict_proba(features)
+            unique_classes = np.unique(labels)
+            if proba.ndim == 1:
+                auc_score = roc_auc_score(labels, proba)
+            elif len(unique_classes) <= 2:
+                positive_probs = proba[:, 1] if proba.shape[1] > 1 else proba.squeeze()
+                auc_score = roc_auc_score(labels, positive_probs)
+            else:
+                auc_score = roc_auc_score(labels, proba, multi_class="ovo")
             metrics[name] = {
                 "accuracy": accuracy_score(labels, preds),
                 "macro_f1": f1_score(labels, preds, average="macro"),
-                "roc_auc": roc_auc_score(labels, proba, multi_class="ovo"),
+                "roc_auc": auc_score,
             }
         return metrics
 

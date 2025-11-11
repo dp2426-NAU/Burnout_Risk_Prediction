@@ -79,7 +79,16 @@ These commands populate MongoDB with realistic demo records so you can sign in u
 
 ---
 
-## 5. Production Notes
+## 5. Retraining & EDA
+
+- **CLI retraining**: `cd ml && python -m src.training.cli` merges every CSV in `datasets/raw/`, retrains the baseline suite, and stores fresh metrics plus `artifacts/baseline/reports/eda_report.json`.
+- **API retraining**: `POST http://localhost:8001/train/tabular` (ML service) or `POST http://localhost:3001/api/ml/retrain` (backend proxy) trigger the same workflow and return confusion matrices, classification reports, and sample counts.
+- **EDA access**: fetch analytics via `GET http://localhost:8001/eda` or `GET http://localhost:3001/api/ml/eda`; responses contain summary statistics, top correlated features, and base64-encoded charts ready for UI rendering.
+- **Admin UI**: administrators can trigger retraining and inspect the latest EDA visuals directly from the dashboard "Retrain Models" card.
+
+---
+
+## 6. Production Notes
 
 - Store secrets (JWT keys, database credentials) in a secure vault and inject them via environment variables.
 - Use a process manager (PM2, systemd, Supervisord) to keep the backend and ML services running and to handle restarts.
@@ -90,7 +99,7 @@ These commands populate MongoDB with realistic demo records so you can sign in u
 
 ---
 
-## 6. Troubleshooting
+## 7. Troubleshooting
 
 | Issue | Resolution |
 | ----- | ---------- |
