@@ -108,6 +108,8 @@ class TrainingPipeline:
     elif len(unique_classes) <= 2:
       auc = roc_auc_score(labels_array, aggregated_probs[:, 1])
     else:
+      # For multiclass, multi_class parameter is still needed for sklearn < 1.8
+      # This will be deprecated in sklearn 1.8, but needed for now
       auc = roc_auc_score(labels_array, aggregated_probs, multi_class="ovo")
 
     conf_matrix = confusion_matrix(labels_array, predictions)

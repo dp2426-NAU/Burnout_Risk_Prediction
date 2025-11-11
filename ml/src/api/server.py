@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..data_collection.schemas import EmployeeSnapshot
 from ..service import BurnoutRiskService
@@ -57,6 +57,8 @@ class TaskPayload(BaseModel):
 
 
 class PredictRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)  # Pydantic V2: allows both field name and alias
+    
     user_id: Optional[str] = Field(default=None, alias="userId")
     employeeId: Optional[str] = None
     features: Optional[Dict[str, float]] = None
@@ -65,16 +67,13 @@ class PredictRequest(BaseModel):
     tasks: List[TaskPayload] = Field(default_factory=list)
     metadata: Dict[str, float] = Field(default_factory=dict)
 
-    class Config:
-        allow_population_by_field_name = True
-
     def to_service_payload(self) -> Dict[str, object]:
         return {
             "employeeId": self.employeeId or self.user_id or "unknown",
             "features": self.features,
-            "calendarEvents": [event.dict() for event in self.calendarEvents],
-            "communications": [message.dict() for message in self.communications],
-            "tasks": [task.dict() for task in self.tasks],
+            "calendarEvents": [event.model_dump() for event in self.calendarEvents],
+            "communications": [message.model_dump() for message in self.communications],
+            "tasks": [task.model_dump() for task in self.tasks],
             "metadata": self.metadata,
         }
 
@@ -105,6 +104,22 @@ class TrainRequest(BaseModel):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Burnout Risk ML Service", version="1.0.0")
+
+    @app.get("/")
+    async def root() -> Dict[str, Any]:
+        """Root endpoint providing API information."""
+        return {
+            "service": "Burnout Risk ML Service",
+            "version": "1.0.0",
+            "endpoints": {
+                "health": "GET /health",
+                "predict": "POST /predict",
+                "train": "POST /train",
+                "train_tabular": "POST /train/tabular",
+                "metrics": "GET /metrics",
+                "eda": "GET /eda"
+            }
+        }
 
     @app.get("/health")
     async def health() -> Dict[str, str]:

@@ -38,19 +38,24 @@ class BaselineModelSuite:
             ("numeric", StandardScaler(), numeric_features),
         ])
 
+        # Detect number of classes to determine if multiclass
+        unique_labels = np.unique(labels)
+        num_classes = len(unique_labels)
+        
+        # For sklearn 1.5+, multi_class is deprecated for binary problems
+        # Only set it for multiclass (>2 classes) if needed
+        logistic_params = {
+            "max_iter": 500,
+            "solver": "lbfgs",
+            **(self.logistic_params or {}),
+        }
+        # Only set multi_class for multiclass problems (if not overridden by user params)
+        if num_classes > 2 and "multi_class" not in (self.logistic_params or {}):
+            logistic_params["multi_class"] = "multinomial"
+        
         logistic = Pipeline([
             ("preprocess", preprocessor),
-            (
-                "model",
-                LogisticRegression(
-                    **{
-                        "multi_class": "multinomial",
-                        "max_iter": 500,
-                        "solver": "lbfgs",
-                        **(self.logistic_params or {}),
-                    }
-                ),
-            ),
+            ("model", LogisticRegression(**logistic_params)),
         ])
 
         forest = Pipeline([
@@ -95,6 +100,7 @@ class BaselineModelSuite:
                 positive_probs = proba[:, 1] if proba.shape[1] > 1 else proba.squeeze()
                 auc_score = roc_auc_score(labels, positive_probs)
             else:
+                # For multiclass, use default multi_class handling (deprecated param removed)
                 auc_score = roc_auc_score(labels, proba, multi_class="ovo")
             metrics[name] = {
                 "accuracy": accuracy_score(labels, preds),
