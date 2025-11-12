@@ -17,11 +17,16 @@ let mongoServer: MongoMemoryServer;
 
 // Setup in-memory MongoDB for testing
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
+  // Configure MongoMemoryServer to avoid permission issues on Windows
+  mongoServer = await MongoMemoryServer.create({
+    instance: {
+      ip: '127.0.0.1', // Use localhost instead of 0.0.0.0 to avoid permission issues
+    },
+  });
   const mongoUri = mongoServer.getUri();
   
   await mongoose.connect(mongoUri);
-});
+}, 60000); // Increase timeout to 60 seconds
 
 // Clean up after each test
 afterEach(async () => {
@@ -36,8 +41,10 @@ afterEach(async () => {
 afterAll(async () => {
   await mongoose.connection.dropDatabase();
   await mongoose.connection.close();
-  await mongoServer.stop();
-});
+  if (mongoServer) {
+    await mongoServer.stop();
+  }
+}, 30000); // Increase timeout to 30 seconds
 
 // Mock environment variables for testing
 process.env.NODE_ENV = 'test';

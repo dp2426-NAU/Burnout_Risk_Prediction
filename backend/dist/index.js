@@ -17,6 +17,8 @@ const prediction_routes_1 = __importDefault(require("./api/routes/prediction.rou
 const ml_routes_1 = __importDefault(require("./api/routes/ml.routes"));
 const metadata_routes_1 = __importDefault(require("./api/routes/metadata.routes"));
 const users_routes_1 = __importDefault(require("./api/routes/users.routes"));
+const dashboard_routes_1 = __importDefault(require("./api/routes/dashboard.routes"));
+const csvData_service_1 = require("./services/csvData.service");
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: {
@@ -81,6 +83,7 @@ app.use('/api/auth', auth_routes_1.default);
 app.use('/api/predictions', prediction_routes_1.default);
 app.use('/api/users', users_routes_1.default);
 app.use('/api/ml', ml_routes_1.default);
+app.use('/api/dashboard', dashboard_routes_1.default);
 app.use('/api', metadata_routes_1.default);
 app.get('/', (req, res) => {
     res.json({
@@ -126,6 +129,9 @@ process.on('SIGINT', () => {
 async function startServer() {
     try {
         await (0, database_1.connectDatabase)();
+        logger_1.logger.info('Initializing CSV data cache...');
+        (0, csvData_service_1.initializeCSVDataCache)();
+        logger_1.logger.info('CSV data cache initialized');
         const server = app.listen(env_1.config.PORT, () => {
             logger_1.logger.info(`Server running on port ${env_1.config.PORT}`);
             logger_1.logger.info(`Environment: ${env_1.config.NODE_ENV}`);

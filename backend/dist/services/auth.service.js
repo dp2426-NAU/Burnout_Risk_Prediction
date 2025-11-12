@@ -49,8 +49,10 @@ async function registerUser(email, password, firstName, lastName, role = 'user')
 }
 async function loginUser(email, password) {
     try {
-        const user = await user_model_1.User.findOne({ email }).select('+password');
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await user_model_1.User.findOne({ email: normalizedEmail }).select('+password');
         if (!user) {
+            logger_1.logger.warn(`Login attempt failed: User not found for email ${normalizedEmail}`);
             return {
                 success: false,
                 message: 'Invalid email or password'
@@ -64,6 +66,7 @@ async function loginUser(email, password) {
         }
         const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
+            logger_1.logger.warn(`Login attempt failed: Invalid password for email ${normalizedEmail}`);
             return {
                 success: false,
                 message: 'Invalid email or password'
@@ -72,7 +75,7 @@ async function loginUser(email, password) {
         user.lastLogin = new Date();
         await user.save();
         const token = generateToken(user);
-        logger_1.logger.info(`User logged in successfully: ${email}`);
+        logger_1.logger.info(`User logged in successfully: ${normalizedEmail}`);
         return {
             success: true,
             user,

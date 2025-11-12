@@ -25,6 +25,7 @@ module.exports = {
     },
   },
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
-  testTimeout: 10000,
+  testTimeout: 30000, // Increased timeout to 30 seconds for MongoDB setup
+  maxWorkers: 1, // Run tests serially to avoid MongoDB port conflicts
   verbose: true,
 };

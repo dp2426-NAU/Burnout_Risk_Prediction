@@ -11,6 +11,9 @@ export interface IUser extends Document {
     jobTitle?: string;
     experienceYears?: number;
     workPatterns?: any;
+    employeeId?: string;
+    employeeName?: string;
+    managerId?: mongoose.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;

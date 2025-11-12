@@ -95,6 +95,20 @@ const userSchema = new mongoose_1.Schema({
     workPatterns: {
         type: mongoose_1.Schema.Types.Mixed,
         default: {}
+    },
+    employeeId: {
+        type: String,
+        trim: true,
+        sparse: true
+    },
+    employeeName: {
+        type: String,
+        trim: true
+    },
+    managerId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
     }
 }, {
     timestamps: true,
@@ -130,5 +144,7 @@ userSchema.methods.getFullName = function () {
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
+userSchema.index({ employeeId: 1 });
+userSchema.index({ managerId: 1 });
 exports.User = mongoose_1.default.model('User', userSchema);
 //# sourceMappingURL=user.model.js.map

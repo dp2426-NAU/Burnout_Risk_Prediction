@@ -7,6 +7,35 @@ exports.isDatabaseConnected = exports.getConnectionStats = exports.checkDatabase
 const mongoose_1 = __importDefault(require("mongoose"));
 const env_1 = require("./env");
 const logger_1 = require("../utils/logger");
+function normalizeMongoDBURI(uri) {
+    if (uri.includes('mongodb+srv://')) {
+        const match = uri.match(/mongodb\+srv:\/\/[^@]+@([^\/\?]+)/);
+        if (match) {
+            const clusterHost = match[1];
+            const clusterIndex = uri.indexOf(clusterHost) + clusterHost.length;
+            const afterCluster = uri.substring(clusterIndex);
+            if (afterCluster === '' || afterCluster === '/' || afterCluster.startsWith('/?')) {
+                if (afterCluster.startsWith('/?')) {
+                    uri = uri.replace(clusterHost + '/?', clusterHost + '/burnout-risk-prediction?');
+                }
+                else if (afterCluster === '/') {
+                    uri = uri.replace(clusterHost + '/', clusterHost + '/burnout-risk-prediction');
+                }
+                else {
+                    uri = uri.replace(clusterHost, clusterHost + '/burnout-risk-prediction');
+                }
+            }
+            else if (afterCluster.startsWith('/') && !afterCluster.match(/^\/burnout-risk-prediction(\?|$)/)) {
+                const pathMatch = afterCluster.match(/^(\/[^?]+)(\?.*)?$/);
+                if (pathMatch && pathMatch[1] !== '/burnout-risk-prediction') {
+                    uri = uri.replace(clusterHost + pathMatch[1], clusterHost + '/burnout-risk-prediction');
+                }
+            }
+        }
+    }
+    return uri;
+}
+const normalizedMongoDBURI = normalizeMongoDBURI(env_1.MONGODB_URI);
 const mongoOptions = {
     maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10'),
     minPoolSize: 2,
@@ -35,7 +64,8 @@ const connectDatabase = async () => {
     const attemptConnection = async (retryCount = 0) => {
         try {
             logger_1.logger.info(`Attempting to connect to MongoDB (attempt ${retryCount + 1}/${RETRY_CONFIG.maxRetries})`);
-            await mongoose_1.default.connect(env_1.MONGODB_URI, mongoOptions);
+            logger_1.logger.info(`Connecting to database: ${normalizedMongoDBURI.replace(/\/\/.*@/, '//***:***@')}`);
+            await mongoose_1.default.connect(normalizedMongoDBURI, mongoOptions);
             isConnected = true;
             connectionRetries = 0;
             logger_1.logger.info('✅ Connected to MongoDB successfully');

@@ -2,6 +2,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Props interface
 interface ChartProps {
@@ -10,6 +11,7 @@ interface ChartProps {
 
 // Chart component
 const Chart: React.FC<ChartProps> = ({ data }) => {
+  const { isDark } = useTheme();
   // State for chart type
   const [chartType, setChartType] = React.useState<'bar' | 'line' | 'pie'>('bar');
 
@@ -40,9 +42,9 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900">{label}</p>
-          <p className="text-sm text-gray-600">
+        <div className={`p-3 border rounded-lg shadow-lg ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</p>
+          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
             Score: <span className="font-medium">{payload[0].value}/10</span>
           </p>
         </div>
@@ -55,10 +57,10 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
   const LineTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900">{label}</p>
+        <div className={`p-3 border rounded-lg shadow-lg ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm text-gray-600">
+            <p key={index} className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <span style={{ color: entry.color }}>{entry.dataKey}:</span> {entry.value}
             </p>
           ))}
@@ -73,9 +75,9 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900">{data.name}</p>
-          <p className="text-sm text-gray-600">
+        <div className={`p-3 border rounded-lg shadow-lg ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{data.name}</p>
+          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
             Score: <span className="font-medium">{data.value}/10</span>
           </p>
         </div>
@@ -85,39 +87,39 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
   };
 
   return (
-    <div className="card">
+    <div className="card dark:bg-gray-800 dark:border-gray-700">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
           Risk Factor Analysis
         </h3>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setChartType('bar')}
-            className={`p-2 rounded-lg ${
+            className={`p-2 rounded-lg transition-colors ${
               chartType === 'bar' 
-                ? 'bg-primary-100 text-primary-600' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
             <BarChart3 className="h-4 w-4" />
           </button>
           <button
             onClick={() => setChartType('line')}
-            className={`p-2 rounded-lg ${
+            className={`p-2 rounded-lg transition-colors ${
               chartType === 'line' 
-                ? 'bg-primary-100 text-primary-600' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
             <TrendingUp className="h-4 w-4" />
           </button>
           <button
             onClick={() => setChartType('pie')}
-            className={`p-2 rounded-lg ${
+            className={`p-2 rounded-lg transition-colors ${
               chartType === 'pie' 
-                ? 'bg-primary-100 text-primary-600' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' 
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
             <PieChartIcon className="h-4 w-4" />
@@ -130,18 +132,18 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
         {chartType === 'bar' && (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={mockData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
               <XAxis 
                 dataKey="name" 
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: isDark ? '#d1d5db' : '#6b7280' }}
                 angle={-45}
                 textAnchor="end"
                 height={80}
               />
               <YAxis 
                 domain={[0, 10]}
-                tick={{ fontSize: 12 }}
-                label={{ value: 'Score (0-10)', angle: -90, position: 'insideLeft' }}
+                tick={{ fontSize: 12, fill: isDark ? '#d1d5db' : '#6b7280' }}
+                label={{ value: 'Score (0-10)', angle: -90, position: 'insideLeft', fill: isDark ? '#d1d5db' : '#6b7280' }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
@@ -156,12 +158,12 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
         {chartType === 'line' && (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={riskTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: isDark ? '#d1d5db' : '#6b7280' }} />
               <YAxis 
                 domain={[0, 100]}
-                tick={{ fontSize: 12 }}
-                label={{ value: 'Score', angle: -90, position: 'insideLeft' }}
+                tick={{ fontSize: 12, fill: isDark ? '#d1d5db' : '#6b7280' }}
+                label={{ value: 'Score', angle: -90, position: 'insideLeft', fill: isDark ? '#d1d5db' : '#6b7280' }}
               />
               <Tooltip content={<LineTooltip />} />
               <Line 
@@ -220,31 +222,31 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
         <div className="mt-4 flex justify-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Risk Score</span>
+            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Risk Score</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Workload</span>
+            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Workload</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Stress</span>
+            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Stress</span>
           </div>
         </div>
       )}
 
       {/* Summary */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
+      <div className={`mt-6 pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-600">Highest Risk Factor:</span>
-            <span className="ml-2 font-medium text-gray-900">
+            <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Highest Risk Factor:</span>
+            <span className={`ml-2 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {mockData.reduce((max, item) => item.value > max.value ? item : max, mockData[0])?.name}
             </span>
           </div>
           <div>
-            <span className="text-gray-600">Average Score:</span>
-            <span className="ml-2 font-medium text-gray-900">
+            <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Average Score:</span>
+            <span className={`ml-2 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {(mockData.reduce((sum, item) => sum + item.value, 0) / mockData.length).toFixed(1)}/10
             </span>
           </div>

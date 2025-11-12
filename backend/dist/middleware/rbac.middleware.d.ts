@@ -20,4 +20,7 @@ export declare function requireOwnResourceOrAdmin(req: AuthenticatedRequest, res
 export declare function requireTeamAccess(req: AuthenticatedRequest, res: Response, next: NextFunction): void;
 export declare function getUserPermissions(role: UserRole): string[];
 export declare function canUserPerformAction(role: UserRole, action: string): boolean;
+export declare function canAccessEmployeeData(requesterId: string, requesterRole: UserRole, targetUserId: string, targetUserManagerId?: string | null): Promise<boolean>;
+export declare function canAccessEmployeeDataSync(requesterId: string, requesterRole: UserRole, targetUserId: string, targetUserManagerId?: string | null): boolean;
+export declare function requireEmployeeOrManager(): (req: AuthenticatedRequest, res: Response, next: NextFunction) => void;
 //# sourceMappingURL=rbac.middleware.d.ts.map

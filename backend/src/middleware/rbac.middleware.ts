@@ -266,3 +266,122 @@ export function getUserPermissions(role: UserRole): string[] {
 export function canUserPerformAction(role: UserRole, action: string): boolean {
   return hasPermission(role, action);
 }
+
+/**
+ * Check if requester can access employee data
+ * - Employees can only access their own data
+ * - Managers can access their direct reports + their own data
+ * - Admins can access all employees including managers
+ */
+export async function canAccessEmployeeData(
+  requesterId: string,
+  requesterRole: UserRole,
+  targetUserId: string,
+  targetUserManagerId?: string | null
+): Promise<boolean> {
+  // Employees can only see their own data
+  if (requesterRole === ROLES.USER && requesterId !== targetUserId) {
+    return false;
+  }
+
+  // Admins can see all employees including managers
+  if (requesterRole === ROLES.ADMIN) {
+    return true;
+  }
+
+  // Managers can see:
+  // 1. Their own data
+  // 2. Their direct reports (employees where managerId === requesterId)
+  if (requesterRole === ROLES.MANAGER) {
+    if (requesterId === targetUserId) {
+      return true; // Manager accessing their own data
+    }
+    // Check if target user is a direct report
+    if (targetUserManagerId && targetUserManagerId.toString() === requesterId) {
+      return true;
+    }
+    // Managers cannot see other managers or employees not under them
+    return false;
+  }
+
+  // User accessing their own data
+  return requesterId === targetUserId;
+}
+
+/**
+ * Synchronous version for backward compatibility (checks managerId directly)
+ */
+export function canAccessEmployeeDataSync(
+  requesterId: string,
+  requesterRole: UserRole,
+  targetUserId: string,
+  targetUserManagerId?: string | null
+): boolean {
+  // Employees can only see their own data
+  if (requesterRole === ROLES.USER && requesterId !== targetUserId) {
+    return false;
+  }
+
+  // Admins can see all employees including managers
+  if (requesterRole === ROLES.ADMIN) {
+    return true;
+  }
+
+  // Managers can see:
+  // 1. Their own data
+  // 2. Their direct reports (employees where managerId === requesterId)
+  if (requesterRole === ROLES.MANAGER) {
+    if (requesterId === targetUserId) {
+      return true; // Manager accessing their own data
+    }
+    // Check if target user is a direct report
+    if (targetUserManagerId && targetUserManagerId.toString() === requesterId) {
+      return true;
+    }
+    // Managers cannot see other managers or employees not under them
+    return false;
+  }
+
+  // User accessing their own data
+  return requesterId === targetUserId;
+}
+
+/**
+ * Middleware for employee or manager/admin access
+ */
+export function requireEmployeeOrManager() {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    try {
+      if (!req.user) {
+        logger.warn('Unauthorized access attempt - no user in request');
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+        return;
+      }
+
+      const userRole = req.user.role as UserRole;
+      
+      // Allow all authenticated users (employees, managers, admins)
+      if (userRole === ROLES.USER || userRole === ROLES.MANAGER || userRole === ROLES.ADMIN) {
+        logger.debug(`Access granted for user ${req.user.email} with role ${userRole}`);
+        next();
+        return;
+      }
+
+      logger.warn(`Access denied for user ${req.user.email} - invalid role: ${userRole}`);
+      res.status(403).json({
+        success: false,
+        message: 'Insufficient permissions'
+      });
+
+    } catch (error) {
+      logger.error('Error in requireEmployeeOrManager middleware:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  };
+}

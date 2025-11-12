@@ -78,10 +78,14 @@ export async function loginUser(
   password: string
 ): Promise<AuthResult> {
   try {
+    // Normalize email (lowercase and trim) to match schema
+    const normalizedEmail = email.toLowerCase().trim();
+    
     // Find user by email and include password
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     
     if (!user) {
+      logger.warn(`Login attempt failed: User not found for email ${normalizedEmail}`);
       return {
         success: false,
         message: 'Invalid email or password'
@@ -99,6 +103,7 @@ export async function loginUser(
     // Compare password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      logger.warn(`Login attempt failed: Invalid password for email ${normalizedEmail}`);
       return {
         success: false,
         message: 'Invalid email or password'
@@ -113,7 +118,7 @@ export async function loginUser(
     const token = generateToken(user);
     
     // Log successful login
-    logger.info(`User logged in successfully: ${email}`);
+    logger.info(`User logged in successfully: ${normalizedEmail}`);
     
     return {
       success: true,

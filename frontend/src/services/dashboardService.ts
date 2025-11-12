@@ -90,48 +90,32 @@ export interface UserData {
 }
 
 class DashboardService {
-  // Get dashboard data for current user
+  // Get dashboard data for current user (uses new API endpoint)
   async getDashboardData(): Promise<DashboardData> {
     try {
-      // First get current user profile to get work patterns
-      const userResponse = await apiClient.get('/auth/profile');
-      const user = userResponse.data;
+      // Use new dashboard API endpoint
+      const response = await apiClient.get('/dashboard/employee');
       
-      if (user && user.workPatterns) {
-        // Generate realistic data based on user's work patterns
-        const workPatterns = user.workPatterns;
-        const riskScore = this.calculateRiskScore(workPatterns);
-        const riskLevel = this.getRiskLevel(riskScore);
-        
+      if (response.success && response.data) {
+        const data = response.data;
         return {
-          userId: user?.id || user?._id,
-          riskLevel: riskLevel,
-          riskScore: Math.round(riskScore * 100),
-          confidence: 0.7 + Math.random() * 0.2,
-          factors: {
-            workload: workPatterns.workloadScore || 6,
-            stressLevel: workPatterns.stressLevel || 6,
-            workLifeBalance: workPatterns.workLifeBalance || 6,
-            socialSupport: workPatterns.socialSupport || 6,
-            jobSatisfaction: workPatterns.jobSatisfaction || 6,
-            physicalHealth: workPatterns.exerciseFrequency || 5,
-            mentalHealth: workPatterns.stressLevel || 6,
-            sleepQuality: workPatterns.sleepQuality || 6,
-            exerciseFrequency: workPatterns.exerciseFrequency || 5,
-            nutritionQuality: workPatterns.nutritionQuality || 6
-          },
-          recommendations: this.generateRecommendations(riskLevel, workPatterns),
-          workPatterns: workPatterns,
+          userId: data.userId,
+          riskLevel: data.riskLevel,
+          riskScore: data.riskScore,
+          confidence: data.confidence || 0.85,
+          factors: data.factors,
+          recommendations: data.recommendations,
+          workPatterns: data.workPatterns,
           dataPoints: {
-            calendarEvents: Math.floor(Math.random() * 50) + 10,
-            emailMessages: Math.floor(Math.random() * 200) + 50,
-            meetings: Math.floor(Math.random() * 20) + 5,
-            tasksCompleted: Math.floor(Math.random() * 30) + 10
+            calendarEvents: data.dailySummary?.meetingsAttended || 0,
+            emailMessages: data.dailySummary?.emailsResponded || 0,
+            meetings: data.dailySummary?.meetingsAttended || 0,
+            tasksCompleted: 0
           }
         };
       }
       
-      // Fallback to mock data if no user data found
+      // Fallback to mock data
       return this.getMockDashboardData();
       
     } catch (error) {
@@ -140,8 +124,112 @@ class DashboardService {
     }
   }
 
+  // Get employee dashboard data (for employees or managers/admins)
+  async getEmployeeDashboard(userId?: string): Promise<DashboardData | null> {
+    try {
+      // For employees, don't pass userId (backend derives from token)
+      // For managers/admins, userId is optional
+      const url = userId ? `/dashboard/employee?userId=${userId}` : '/dashboard/employee';
+      const response = await apiClient.get(url);
+      
+      if (response.success && response.data) {
+        const data = response.data;
+        return {
+          userId: data.userId,
+          riskLevel: data.riskLevel,
+          riskScore: data.riskScore,
+          confidence: data.confidence || 0.85,
+          factors: data.factors,
+          recommendations: data.recommendations,
+          workPatterns: data.workPatterns,
+          dataPoints: {
+            calendarEvents: data.dailySummary?.meetingsAttended || 0,
+            emailMessages: data.dailySummary?.emailsResponded || 0,
+            meetings: data.dailySummary?.meetingsAttended || 0,
+            tasksCompleted: 0
+          }
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching employee dashboard:', error);
+      return null;
+    }
+  }
+
+  // Get profile overview with daily summary
+  async getProfileOverview(userId?: string): Promise<{
+    profile: {
+      name: string;
+      jobTitle: string;
+      department?: string;
+      role: string;
+    };
+    dailySummary: {
+      meetingsAttended: number;
+      emailsResponded: number;
+      workHoursLogged: number;
+    };
+  } | null> {
+    try {
+      const url = userId ? `/dashboard/profile?userId=${userId}` : '/dashboard/profile';
+      const response = await apiClient.get(url);
+      
+      if (response.success && response.data) {
+        return response.data;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching profile overview:', error);
+      return null;
+    }
+  }
+
+  // Simulate burnout risk with adjusted parameters
+  async simulateBurnoutRisk(params: {
+    meetingHours?: number;
+    workHours?: number;
+    sleepHours?: number;
+    stressLevel?: number;
+    workLifeBalance?: number;
+    exerciseFrequency?: number;
+    userId?: string;
+  }): Promise<{
+    baseRiskScore: number;
+    baseRiskLevel: string;
+    simulatedRiskScore: number;
+    simulatedRiskLevel: string;
+    changes: {
+      riskScoreChange: number;
+      riskLevelChange: boolean;
+    };
+    recommendations: Array<{
+      priority: 'low' | 'medium' | 'high';
+      category: 'workload' | 'stress' | 'lifestyle' | 'social' | 'health';
+      title: string;
+      description: string;
+      actionItems: string[];
+    }>;
+  } | null> {
+    try {
+      const response = await apiClient.post('/dashboard/simulate', params);
+      
+      if (response.success && response.data) {
+        return response.data;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error simulating burnout risk:', error);
+      return null;
+    }
+  }
+
   // Calculate risk score based on work patterns
-  private calculateRiskScore(workPatterns: any): number {
+  // @ts-expect-error - Method reserved for future use
+  private _calculateRiskScore(workPatterns: any): number {
     const {
       workHoursPerWeek = 40,
       stressLevel = 5,
@@ -175,7 +263,8 @@ class DashboardService {
   }
 
   // Get risk level from score
-  private getRiskLevel(riskScore: number): string {
+  // @ts-expect-error - Method reserved for future use
+  private _getRiskLevel(riskScore: number): string {
     if (riskScore < 0.3) return 'low';
     if (riskScore < 0.6) return 'medium';
     if (riskScore < 0.8) return 'high';
@@ -183,7 +272,8 @@ class DashboardService {
   }
 
   // Generate recommendations based on risk level and work patterns
-  private generateRecommendations(riskLevel: string, workPatterns: any): any[] {
+  // @ts-expect-error - Method reserved for future use
+  private _generateRecommendations(riskLevel: string, workPatterns: any): any[] {
     const recommendations = [];
     
     if (riskLevel === 'low') {

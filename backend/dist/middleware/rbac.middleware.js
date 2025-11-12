@@ -7,6 +7,9 @@ exports.requireOwnResourceOrAdmin = requireOwnResourceOrAdmin;
 exports.requireTeamAccess = requireTeamAccess;
 exports.getUserPermissions = getUserPermissions;
 exports.canUserPerformAction = canUserPerformAction;
+exports.canAccessEmployeeData = canAccessEmployeeData;
+exports.canAccessEmployeeDataSync = canAccessEmployeeDataSync;
+exports.requireEmployeeOrManager = requireEmployeeOrManager;
 const logger_1 = require("../utils/logger");
 exports.ROLES = {
     ADMIN: 'admin',
@@ -194,5 +197,73 @@ function getUserPermissions(role) {
 }
 function canUserPerformAction(role, action) {
     return hasPermission(role, action);
+}
+async function canAccessEmployeeData(requesterId, requesterRole, targetUserId, targetUserManagerId) {
+    if (requesterRole === exports.ROLES.USER && requesterId !== targetUserId) {
+        return false;
+    }
+    if (requesterRole === exports.ROLES.ADMIN) {
+        return true;
+    }
+    if (requesterRole === exports.ROLES.MANAGER) {
+        if (requesterId === targetUserId) {
+            return true;
+        }
+        if (targetUserManagerId && targetUserManagerId.toString() === requesterId) {
+            return true;
+        }
+        return false;
+    }
+    return requesterId === targetUserId;
+}
+function canAccessEmployeeDataSync(requesterId, requesterRole, targetUserId, targetUserManagerId) {
+    if (requesterRole === exports.ROLES.USER && requesterId !== targetUserId) {
+        return false;
+    }
+    if (requesterRole === exports.ROLES.ADMIN) {
+        return true;
+    }
+    if (requesterRole === exports.ROLES.MANAGER) {
+        if (requesterId === targetUserId) {
+            return true;
+        }
+        if (targetUserManagerId && targetUserManagerId.toString() === requesterId) {
+            return true;
+        }
+        return false;
+    }
+    return requesterId === targetUserId;
+}
+function requireEmployeeOrManager() {
+    return (req, res, next) => {
+        try {
+            if (!req.user) {
+                logger_1.logger.warn('Unauthorized access attempt - no user in request');
+                res.status(401).json({
+                    success: false,
+                    message: 'Authentication required'
+                });
+                return;
+            }
+            const userRole = req.user.role;
+            if (userRole === exports.ROLES.USER || userRole === exports.ROLES.MANAGER || userRole === exports.ROLES.ADMIN) {
+                logger_1.logger.debug(`Access granted for user ${req.user.email} with role ${userRole}`);
+                next();
+                return;
+            }
+            logger_1.logger.warn(`Access denied for user ${req.user.email} - invalid role: ${userRole}`);
+            res.status(403).json({
+                success: false,
+                message: 'Insufficient permissions'
+            });
+        }
+        catch (error) {
+            logger_1.logger.error('Error in requireEmployeeOrManager middleware:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error'
+            });
+        }
+    };
 }
 //# sourceMappingURL=rbac.middleware.js.map

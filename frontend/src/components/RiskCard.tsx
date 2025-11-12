@@ -1,16 +1,15 @@
 // Risk card component - Created by Balaji Koneti
 import React, { useMemo, useCallback } from 'react';
 import { AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 // Props interface
 interface RiskCardProps {
   data: any; // Risk data from parent component
+  onViewDetails?: () => void; // Callback to open detailed analysis modal
 }
 
 // Risk card component
-const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
-  const navigate = useNavigate();
+const RiskCard: React.FC<RiskCardProps> = ({ data, onViewDetails }) => {
 
   // Get risk level styling
   const getRiskLevelStyle = (riskLevel: string) => {
@@ -133,27 +132,29 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
       return;
     }
 
-    const targetId = data.userId ?? data.id ?? (data as any).employeeId ?? 'me';
-    navigate(`/dashboard/details/${encodeURIComponent(String(targetId))}`);
-  }, [data, navigate]);
+    // Call parent callback to open modal instead of navigating
+    if (onViewDetails) {
+      onViewDetails();
+    }
+  }, [data, onViewDetails]);
 
   return (
-    <div className={`card border-l-4 ${style.border}`}>
+    <div className={`card border-l-4 dark:bg-gray-800 dark:border-gray-700 ${style.border} transition-colors duration-200`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           {getRiskLevelIcon(riskLevel)}
           <div className="ml-3">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Burnout Risk Assessment
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Last updated: {new Date().toLocaleDateString()}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <div className={`px-3 py-1 rounded-full text-sm font-medium ${style.bg} ${style.text}`}>
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${style.bg} ${style.text} dark:bg-opacity-20`}>
             {riskLevel.toUpperCase()}
           </div>
           {getTrendIndicator(riskScore)}
@@ -163,12 +164,12 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
       {/* Risk score */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Risk Score</span>
-          <span className="text-3xl font-bold text-gray-900">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Risk Score</span>
+          <span className="text-3xl font-bold text-gray-900 dark:text-white">
             {riskScore}/100
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-4">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
           <div
             className={`h-4 rounded-full transition-all duration-1000 ${
               riskScore >= 75 
@@ -182,7 +183,7 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
             style={{ width: `${riskScore}%` }}
           ></div>
         </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
           <span>Low (0-25)</span>
           <span>Medium (26-50)</span>
           <span>High (51-75)</span>
@@ -192,37 +193,37 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
 
       {/* Description */}
       <div className="mb-6">
-        <p className={`text-sm ${style.text}`}>
+        <p className={`text-sm ${style.text} dark:text-opacity-90`}>
           {getRiskLevelDescription(riskLevel)}
         </p>
       </div>
 
       {/* Confidence and data points */}
-      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+      <div className={`grid grid-cols-2 gap-4 pt-4 border-t ${style.border} dark:border-gray-700`}>
         <div>
-          <span className="text-sm text-gray-600">Confidence Level</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Confidence Level</span>
           <div className="flex items-center mt-1">
-            <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+            <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
               <div
                 className="bg-primary-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${normalizedConfidence}%` }}
               ></div>
             </div>
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {Math.round(normalizedConfidence)}%
             </span>
           </div>
         </div>
         <div>
-          <span className="text-sm text-gray-600">Data Points</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Data Points</span>
           <div className="mt-1">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {data?.dataPoints ? 
                 Object.values(data.dataPoints).reduce((sum: number, val: any) => sum + val, 0) : 
                 0
               }
             </span>
-            <span className="text-sm text-gray-500 ml-1">analyzed</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">analyzed</span>
           </div>
         </div>
       </div>
@@ -231,7 +232,7 @@ const RiskCard: React.FC<RiskCardProps> = ({ data }) => {
       <div className="mt-6">
         <button
           onClick={handleViewDetails}
-          className="btn-primary w-full"
+          className="btn-primary w-full dark:bg-primary-600 dark:hover:bg-primary-700"
           type="button"
         >
           View Detailed Analysis

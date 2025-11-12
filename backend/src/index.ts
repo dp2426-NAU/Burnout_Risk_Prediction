@@ -15,6 +15,8 @@ import predictionRoutes from './api/routes/prediction.routes';
 import mlRoutes from './api/routes/ml.routes';
 import metadataRoutes from './api/routes/metadata.routes';
 import usersRoutes from './api/routes/users.routes';
+import dashboardRoutes from './api/routes/dashboard.routes';
+import { initializeCSVDataCache } from './services/csvData.service';
 
 // Create Express application
 const app = express();
@@ -97,6 +99,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/predictions', predictionRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/ml', mlRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api', metadataRoutes);
 
 // Root endpoint
@@ -159,6 +162,11 @@ async function startServer() {
   try {
     // Connect to database
     await connectDatabase();
+    
+    // Initialize CSV data cache
+    logger.info('Initializing CSV data cache...');
+    initializeCSVDataCache();
+    logger.info('CSV data cache initialized');
     
     // Start HTTP server
     const server = app.listen(config.PORT, () => {

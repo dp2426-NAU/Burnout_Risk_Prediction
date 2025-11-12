@@ -3,6 +3,46 @@ import mongoose, { ConnectOptions } from 'mongoose';
 import { MONGODB_URI, NODE_ENV } from './env';
 import { logger } from '../utils/logger';
 
+// Normalize MongoDB URI to ensure database name is set
+function normalizeMongoDBURI(uri: string): string {
+  // For MongoDB Atlas connections, ensure database name is included
+  if (uri.includes('mongodb+srv://')) {
+    // Extract the cluster host part (everything after @ and before / or ?)
+    const match = uri.match(/mongodb\+srv:\/\/[^@]+@([^\/\?]+)/);
+    if (match) {
+      const clusterHost = match[1];
+      const clusterIndex = uri.indexOf(clusterHost) + clusterHost.length;
+      const afterCluster = uri.substring(clusterIndex);
+      
+      // If URI ends with cluster host or has /? or just ?, add database name
+      if (afterCluster === '' || afterCluster === '/' || afterCluster.startsWith('/?')) {
+        // No database name, add it
+        if (afterCluster.startsWith('/?')) {
+          // Replace /? with /burnout-risk-prediction?
+          uri = uri.replace(clusterHost + '/?', clusterHost + '/burnout-risk-prediction?');
+        } else if (afterCluster === '/') {
+          // Replace / with /burnout-risk-prediction
+          uri = uri.replace(clusterHost + '/', clusterHost + '/burnout-risk-prediction');
+        } else {
+          // No slash, add /burnout-risk-prediction
+          uri = uri.replace(clusterHost, clusterHost + '/burnout-risk-prediction');
+        }
+      } else if (afterCluster.startsWith('/') && !afterCluster.match(/^\/burnout-risk-prediction(\?|$)/)) {
+        // Has a path but not our database name
+        const pathMatch = afterCluster.match(/^(\/[^?]+)(\?.*)?$/);
+        if (pathMatch && pathMatch[1] !== '/burnout-risk-prediction') {
+          // Replace the path with our database name
+          uri = uri.replace(clusterHost + pathMatch[1], clusterHost + '/burnout-risk-prediction');
+        }
+      }
+    }
+  }
+  return uri;
+}
+
+// Get normalized MongoDB URI
+const normalizedMongoDBURI = normalizeMongoDBURI(MONGODB_URI);
+
 // Enhanced MongoDB connection options
 const mongoOptions: ConnectOptions = {
   maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10'),
@@ -39,8 +79,9 @@ export const connectDatabase = async (): Promise<void> => {
   const attemptConnection = async (retryCount: number = 0): Promise<void> => {
     try {
       logger.info(`Attempting to connect to MongoDB (attempt ${retryCount + 1}/${RETRY_CONFIG.maxRetries})`);
+      logger.info(`Connecting to database: ${normalizedMongoDBURI.replace(/\/\/.*@/, '//***:***@')}`);
       
-      await mongoose.connect(MONGODB_URI, mongoOptions);
+      await mongoose.connect(normalizedMongoDBURI, mongoOptions);
       
       isConnected = true;
       connectionRetries = 0;

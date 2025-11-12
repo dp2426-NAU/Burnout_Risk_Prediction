@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import DashboardPage from '../../pages/DashboardPage';
 import { dashboardService, type DashboardData } from '../../services/dashboardService';
 import { useAuth } from '../../hooks/useAuth';
+import { ThemeProvider } from '../../contexts/ThemeContext';
 
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(),
@@ -12,6 +13,7 @@ vi.mock('../../hooks/useAuth', () => ({
 vi.mock('../../services/dashboardService', () => ({
   dashboardService: {
     getDashboardData: vi.fn(),
+    getProfileOverview: vi.fn(),
   },
 }));
 
@@ -78,7 +80,9 @@ const mockDashboardData: DashboardData = {
 const renderDashboard = () =>
   render(
     <BrowserRouter>
+      <ThemeProvider>
       <DashboardPage />
+      </ThemeProvider>
     </BrowserRouter>
   );
 
@@ -94,6 +98,19 @@ describe('DashboardPage', () => {
       loading: false,
     });
     (dashboardService.getDashboardData as vi.Mock).mockResolvedValue(mockDashboardData);
+    (dashboardService.getProfileOverview as vi.Mock).mockResolvedValue({
+      profile: {
+        name: 'John Doe',
+        jobTitle: 'Software Engineer',
+        department: 'Engineering',
+        role: 'user',
+      },
+      dailySummary: {
+        meetingsAttended: 5,
+        emailsResponded: 20,
+        workHoursLogged: 8,
+      },
+    });
 
     renderDashboard();
 
@@ -117,9 +134,14 @@ describe('DashboardPage', () => {
     (useAuth as unknown as vi.Mock).mockReturnValue({
       user: mockUser,
       logout: vi.fn(),
-      loading: true,
+      loading: false,
     });
-    (dashboardService.getDashboardData as vi.Mock).mockResolvedValue(mockDashboardData);
+    (dashboardService.getDashboardData as vi.Mock).mockImplementation(
+      () => new Promise(() => {}) // Never resolves to keep loading state
+    );
+    (dashboardService.getProfileOverview as vi.Mock).mockImplementation(
+      () => new Promise(() => {}) // Never resolves to keep loading state
+    );
 
     renderDashboard();
 
@@ -133,11 +155,12 @@ describe('DashboardPage', () => {
       loading: false,
     });
     (dashboardService.getDashboardData as vi.Mock).mockRejectedValue(new Error('Network error'));
+    (dashboardService.getProfileOverview as vi.Mock).mockResolvedValue(null);
 
     renderDashboard();
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load dashboard data')).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 });

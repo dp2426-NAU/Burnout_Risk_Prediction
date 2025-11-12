@@ -15,6 +15,9 @@ export interface IUser extends Document {
   jobTitle?: string;
   experienceYears?: number;
   workPatterns?: any;
+  employeeId?: string; // Maps to CSV EmployeeID column
+  employeeName?: string; // Maps to CSV Name column for fallback matching
+  managerId?: mongoose.Types.ObjectId; // Reference to manager (for employees)
   createdAt: Date;
   updatedAt: Date;
   // Method to compare password
@@ -80,6 +83,20 @@ const userSchema = new Schema<IUser>({
   workPatterns: {
     type: Schema.Types.Mixed,
     default: {}
+  },
+  employeeId: {
+    type: String,
+    trim: true,
+    sparse: true // Allows multiple null values
+  },
+  employeeName: {
+    type: String,
+    trim: true
+  },
+  managerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   }
 }, {
   timestamps: true, // Automatically add createdAt and updatedAt
@@ -130,6 +147,12 @@ userSchema.index({ role: 1 });
 
 // Index for active status
 userSchema.index({ isActive: 1 });
+
+// Index for employeeId for faster CSV lookups
+userSchema.index({ employeeId: 1 });
+
+// Index for managerId for faster team queries
+userSchema.index({ managerId: 1 });
 
 // Create and export the User model
 export const User = mongoose.model<IUser>('User', userSchema);

@@ -15,10 +15,14 @@ jest.mock('../utils/logger', () => ({
 }));
 let mongoServer;
 beforeAll(async () => {
-    mongoServer = await mongodb_memory_server_1.MongoMemoryServer.create();
+    mongoServer = await mongodb_memory_server_1.MongoMemoryServer.create({
+        instance: {
+            ip: '127.0.0.1',
+        },
+    });
     const mongoUri = mongoServer.getUri();
     await mongoose_1.default.connect(mongoUri);
-});
+}, 60000);
 afterEach(async () => {
     const collections = mongoose_1.default.connection.collections;
     for (const key in collections) {
@@ -29,8 +33,10 @@ afterEach(async () => {
 afterAll(async () => {
     await mongoose_1.default.connection.dropDatabase();
     await mongoose_1.default.connection.close();
-    await mongoServer.stop();
-});
+    if (mongoServer) {
+        await mongoServer.stop();
+    }
+}, 30000);
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
 process.env.JWT_EXPIRES_IN = '1h';
