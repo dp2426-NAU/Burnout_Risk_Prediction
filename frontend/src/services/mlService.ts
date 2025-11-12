@@ -20,11 +20,11 @@ export interface TrainingSummary {
 
 export const mlService = {
   async triggerRetraining(): Promise<ApiResponse<TrainingSummary>> {
-    return apiClient.post<TrainingSummary>('/api/ml/retrain', {});
+    return apiClient.post<TrainingSummary>('/ml/retrain', {});
   },
 
   async fetchEdaReport(): Promise<ApiResponse<EdaReport>> {
-    return apiClient.get<EdaReport>('/api/ml/eda');
+    return apiClient.get<EdaReport>('/ml/eda');
   },
 };
 

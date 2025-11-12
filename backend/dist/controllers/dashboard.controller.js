@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.simulateBurnoutRisk = exports.getProfileOverview = exports.getEmployeeDashboardById = exports.getEmployeeDashboard = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
 const rbac_middleware_1 = require("../middleware/rbac.middleware");
 const user_model_1 = require("../models/user.model");
 const csvData_service_1 = require("../services/csvData.service");
@@ -36,6 +40,14 @@ const getEmployeeDashboard = async (req, res) => {
         }
         else {
             userIdToFetch = requesterId;
+        }
+        if (!mongoose_1.default.Types.ObjectId.isValid(userIdToFetch)) {
+            logger_1.logger.error(`Invalid ObjectId format: ${userIdToFetch}`);
+            res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format'
+            });
+            return;
         }
         const user = await user_model_1.User.findById(userIdToFetch);
         if (!user) {
@@ -255,6 +267,14 @@ const getProfileOverview = async (req, res) => {
         }
         else {
             userIdToFetch = requesterId;
+        }
+        if (!mongoose_1.default.Types.ObjectId.isValid(userIdToFetch)) {
+            logger_1.logger.error(`Invalid ObjectId format in getProfileOverview: ${userIdToFetch}`);
+            res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format'
+            });
+            return;
         }
         const user = await user_model_1.User.findById(userIdToFetch);
         if (!user) {

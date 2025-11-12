@@ -1,19 +1,22 @@
 // Admin Dashboard - Created by Balaji Koneti
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { dashboardService, UserData, DashboardData } from '../services/dashboardService';
-import { LogOut, Users, BarChart3, AlertTriangle, CheckCircle, RefreshCw, Activity, User, Building2, Eye } from 'lucide-react';
+import { LogOut, Users, BarChart3, AlertTriangle, CheckCircle, RefreshCw, Activity, User, Building2, Eye, Settings, Search } from 'lucide-react';
 import { mlService, EdaReport, TrainingSummary } from '../services/mlService';
 import SimulationModule from '../components/SimulationModule';
 import RiskCard from '../components/RiskCard';
 import Chart from '../components/Chart';
 import RecommendationList from '../components/RecommendationList';
 import DetailedAnalysisModal from '../components/DetailedAnalysisModal';
+import SettingsPanel from '../components/SettingsPanel';
 import { useTheme } from '../contexts/ThemeContext';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserData[]>([]);
   const [predictions, setPredictions] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -26,10 +29,6 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [viewingAsUser, setViewingAsUser] = useState<UserData | null>(null);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
-  const [employeeDashboardData, setEmployeeDashboardData] = useState<DashboardData | null>(null);
-  const [employeeProfileOverview, setEmployeeProfileOverview] = useState<any>(null);
-  const [loadingEmployeeData, setLoadingEmployeeData] = useState(false);
   const [edaReport, setEdaReport] = useState<EdaReport | null>(null);
   const [trainingSummary, setTrainingSummary] = useState<TrainingSummary | null>(null);
   const [trainingInProgress, setTrainingInProgress] = useState(false);
@@ -40,6 +39,9 @@ const AdminDashboard: React.FC = () => {
   const [myProfileOverview, setMyProfileOverview] = useState<any>(null);
   const [loadingMyData, setLoadingMyData] = useState(false);
   const [isDetailedAnalysisOpen, setIsDetailedAnalysisOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedRiskFilter, setSelectedRiskFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadAdminData();
@@ -180,34 +182,11 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Load employee dashboard data when employee is selected
-  const loadEmployeeDashboard = async (userId: string) => {
-    if (!userId) {
-      setEmployeeDashboardData(null);
-      setEmployeeProfileOverview(null);
-      return;
-    }
-
-    try {
-      setLoadingEmployeeData(true);
-      const [dashboardData, profileData] = await Promise.all([
-        dashboardService.getEmployeeDashboard(userId),
-        dashboardService.getProfileOverview(userId)
-      ]);
-
-      setEmployeeDashboardData(dashboardData);
-      setEmployeeProfileOverview(profileData);
-    } catch (error) {
-      console.error('Error loading employee dashboard:', error);
-    } finally {
-      setLoadingEmployeeData(false);
-    }
-  };
-
-  // Handle employee selection
+  // Handle employee selection - navigate to employee details page
   const handleEmployeeSelect = (userId: string) => {
-    setSelectedEmployeeId(userId);
-    loadEmployeeDashboard(userId);
+    if (userId) {
+      navigate(`/dashboard/details/${userId}`);
+    }
   };
 
   // Calculate department-wise insights
@@ -272,11 +251,45 @@ const AdminDashboard: React.FC = () => {
     return insights;
   }, [users, predictions]);
 
-  // Get filtered users based on selected department
+  // Get filtered users based on selected department, risk level, and search query
   const filteredUsers = useMemo(() => {
-    if (selectedDepartment === 'all') return users;
-    return users.filter(u => (u.department || 'Unknown') === selectedDepartment);
-  }, [users, selectedDepartment]);
+    let filtered = users;
+    
+    // Filter by department
+    if (selectedDepartment !== 'all') {
+      filtered = filtered.filter(u => (u.department || 'Unknown') === selectedDepartment);
+    }
+    
+    // Filter by risk level
+    if (selectedRiskFilter) {
+      filtered = filtered.filter(u => {
+        const riskLevel = getUserRiskLevel(u._id);
+        return riskLevel === selectedRiskFilter;
+      });
+    }
+    
+    // Filter by search query (name, role, department, job title)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(u => {
+        const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const role = (u.role || '').toLowerCase();
+        const department = (u.department || '').toLowerCase();
+        const jobTitle = (u.jobTitle || '').toLowerCase();
+        const riskLevel = getUserRiskLevel(u._id).toLowerCase();
+        
+        return fullName.includes(query) ||
+               email.includes(query) ||
+               role.includes(query) ||
+               department.includes(query) ||
+               jobTitle.includes(query) ||
+               riskLevel.includes(query);
+      });
+    }
+    
+    return filtered;
+  }, [users, selectedDepartment, selectedRiskFilter, searchQuery]);
 
   // Get all unique departments
   const departments = useMemo(() => {
@@ -380,6 +393,14 @@ const AdminDashboard: React.FC = () => {
                   </button>
                 </div>
               )}
+              {/* Settings Button */}
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className={`p-2 ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'} rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors`}
+                aria-label="Open settings"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
               <button
                 onClick={handleLogout}
                 className={`flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
@@ -615,112 +636,257 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Employee Selector and Dashboard View */}
-        <div className={`rounded-lg shadow p-6 mb-8 transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <User className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>View Employee Dashboard</h3>
+        {/* Risk Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className={`rounded-lg shadow p-6 transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Risk Level Distribution</h3>
+            <div className="space-y-3">
+              {Object.entries({
+                low: stats.lowRisk,
+                medium: Math.floor(stats.totalUsers * 0.2), // Estimate medium risk
+                high: stats.highRisk,
+                critical: stats.criticalRisk
+              }).map(([level, count]) => (
+                <div 
+                  key={level} 
+                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedRiskFilter === level
+                      ? isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'
+                      : isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    if (selectedRiskFilter === level) {
+                      setSelectedRiskFilter(null);
+                    } else {
+                      setSelectedRiskFilter(level);
+                    }
+                  }}
+                >
+                  <div className="flex items-center flex-1">
+                    {getRiskIcon(level)}
+                    <span className={`ml-2 text-sm font-medium capitalize ${
+                      isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      {level} Risk
+                    </span>
+                    <span className={`ml-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      ({count} {count === 1 ? 'employee' : 'employees'})
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-24 rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      <div 
+                        className={`h-2 rounded-full ${
+                          level === 'low' ? 'bg-green-500' :
+                          level === 'medium' ? 'bg-yellow-500' :
+                          level === 'high' ? 'bg-orange-500' :
+                          'bg-red-500'
+                        }`}
+                        style={{ width: `${users.length > 0 ? (count / users.length) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                    <span className={`text-sm w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{count}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <select
-              value={selectedEmployeeId}
-              onChange={(e) => handleEmployeeSelect(e.target.value)}
-              className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                isDark 
-                  ? 'bg-gray-700 border border-gray-600 text-white' 
-                  : 'border border-gray-300 bg-white text-gray-900'
-              }`}
-            >
-              <option value="">Select an employee...</option>
-              {filteredUsers
-                .filter(u => u.role === 'user' || u.role === 'manager')
-                .map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.firstName} {u.lastName} {u.jobTitle ? `- ${u.jobTitle}` : ''} {u.department ? `(${u.department})` : ''}
-                  </option>
-                ))}
-            </select>
+            {selectedRiskFilter && (
+              <button
+                onClick={() => setSelectedRiskFilter(null)}
+                className={`mt-4 text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
+              >
+                Clear filter
+              </button>
+            )}
           </div>
 
-          {loadingEmployeeData && (
-            <div className="text-center py-8">
-              <div className={`inline-block animate-spin rounded-full h-8 w-8 border-b-2 ${isDark ? 'border-blue-400' : 'border-blue-600'}`}></div>
-              <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading employee data...</p>
-            </div>
-          )}
-
-          {!loadingEmployeeData && selectedEmployeeId && employeeDashboardData && employeeProfileOverview && (
-            <div className="mt-6 space-y-6">
-              {/* Profile Overview */}
-              <div className={`rounded-lg p-6 transition-colors duration-200 ${isDark ? 'bg-gray-700 border border-gray-600' : 'bg-gray-50'}`}>
-                <div className="flex items-center gap-2 mb-4">
-                  <User className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                  <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Profile Overview</h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Current Role</p>
-                    <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {employeeProfileOverview.profile.name}
-                    </p>
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {employeeProfileOverview.profile.jobTitle}
-                      {employeeProfileOverview.profile.department && ` • ${employeeProfileOverview.profile.department}`}
-                    </p>
-                  </div>
-                  <div>
-                    <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Daily Summary</p>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {employeeProfileOverview.dailySummary.meetingsAttended}
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Meetings</p>
-                      </div>
-                      <div className="text-center">
-                        <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {employeeProfileOverview.dailySummary.emailsResponded}
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Emails</p>
-                      </div>
-                      <div className="text-center">
-                        <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {employeeProfileOverview.dailySummary.workHoursLogged}h
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Work Hours</p>
-                      </div>
+          <div className={`rounded-lg shadow p-6 transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Department Distribution</h3>
+            <div className="space-y-3">
+              {Object.entries(departmentStats).map(([dept, count]) => (
+                <div 
+                  key={dept} 
+                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedDepartment === dept
+                      ? isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'
+                      : isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    if (selectedDepartment === dept) {
+                      setSelectedDepartment('all');
+                    } else {
+                      setSelectedDepartment(dept);
+                    }
+                  }}
+                >
+                  <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {dept}
+                    <span className={`ml-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      ({count} {count === 1 ? 'employee' : 'employees'})
+                    </span>
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-24 rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full"
+                        style={{ width: `${users.length > 0 ? (count / users.length) * 100 : 0}%` }}
+                      ></div>
                     </div>
+                    <span className={`text-sm w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{count}</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Risk Analysis */}
-              <div>
-                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Risk Analysis</h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <RiskCard data={employeeDashboardData} />
-                  </div>
-                  <div>
-                    <Chart data={employeeDashboardData} />
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <RecommendationList recommendations={employeeDashboardData.recommendations || []} />
-                </div>
-              </div>
-
-              {/* Simulation Module */}
-              <SimulationModule 
-                userId={selectedEmployeeId}
-                baseWorkPatterns={employeeDashboardData.workPatterns}
-              />
+              ))}
             </div>
-          )}
+            {selectedDepartment !== 'all' && (
+              <button
+                onClick={() => setSelectedDepartment('all')}
+                className={`mt-4 text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* User List */}
+        <div id="user-list-section" className={`rounded-lg shadow transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
+          <div className={`px-6 py-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {selectedDepartment === 'all' ? 'All Users' : `${selectedDepartment} Department`} ({filteredUsers.length})
+            </h3>
+            </div>
+            {/* Search/Filter Bar */}
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
+              <input
+                type="text"
+                placeholder="Search by name, role, department, job title, or risk level..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                }`}
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
+                <tr>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDark ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    User
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDark ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    Role
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDark ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    Department
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDark ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    Job Title
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDark ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    Risk Level
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                    isDark ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    Work Patterns
+                  </th>
+                </tr>
+              </thead>
+              <tbody className={`divide-y ${isDark ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'}`}>
+                {filteredUsers.map((user) => {
+                  const riskLevel = getUserRiskLevel(user._id);
+                  return (
+                    <tr 
+                      key={user._id} 
+                      className={`cursor-pointer transition-colors ${
+                        isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => setSelectedUser(user)}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                              isDark ? 'bg-gray-600' : 'bg-gray-300'
+                            }`}>
+                              <span className={`text-sm font-medium ${
+                                isDark ? 'text-gray-200' : 'text-gray-700'
+                              }`}>
+                                {(user.firstName?.[0] || '').toUpperCase()}{(user.lastName?.[0] || '').toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4 min-w-0">
+                            <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {user.firstName || 'N/A'} {user.lastName || ''}
+                            </div>
+                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} truncate max-w-xs`} title={user.email}>
+                              {user.email || 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.role === 'admin' 
+                            ? isDark ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
+                            : user.role === 'manager'
+                            ? isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                            : isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                        {user.department || 'N/A'}
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
+                        {user.jobTitle || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(riskLevel)} dark:bg-opacity-20`}>
+                          {getRiskIcon(riskLevel)}
+                          <span className="ml-1 capitalize">{riskLevel}</span>
+                        </span>
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {user.workPatterns ? (
+                          <div className="text-xs">
+                            <div>{user.workPatterns.workHoursPerWeek}h/week</div>
+                            <div>{user.workPatterns.stressLevel}/10 stress</div>
+                            {user.role === 'manager' && (
+                              <div>{user.workPatterns.teamSize} team members</div>
+                            )}
+                          </div>
+                        ) : 'N/A'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Model Operations & EDA - Moved to bottom */}
         <div className={`rounded-lg shadow p-6 mb-8 transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
             <div>
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Model Operations & EDA</h3>
               <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -738,7 +904,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {trainingMessage && (
-            <div className={`mt-4 p-3 rounded-md text-sm ${
+            <div className={`mb-4 p-3 rounded-md text-sm ${
               isDark ? 'bg-blue-900/30 text-blue-300 border border-blue-700' : 'bg-blue-50 text-blue-700'
             }`}>
               {trainingMessage}
@@ -746,7 +912,7 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {trainingSummary && (
-            <div className={`mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm ${
+            <div className={`mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm ${
               isDark ? 'text-gray-300' : 'text-gray-700'
             }`}>
               <div className={`rounded-md p-3 ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
@@ -765,7 +931,7 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {edaReport ? (
-            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
                   <h4 className={`text-sm font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -834,209 +1000,10 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           ) : (
-            <p className={`mt-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               EDA report not available yet. Trigger a training run to generate analytics.
             </p>
           )}
-        </div>
-
-        {/* Risk Distribution */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className={`rounded-lg shadow p-6 transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Risk Level Distribution</h3>
-            <div className="space-y-3">
-              {Object.entries({
-                low: stats.lowRisk,
-                medium: Math.floor(stats.totalUsers * 0.2), // Estimate medium risk
-                high: stats.highRisk,
-                critical: stats.criticalRisk
-              }).map(([level, count]) => (
-                <div key={level} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {getRiskIcon(level)}
-                    <span className={`ml-2 text-sm font-medium capitalize ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      {level} Risk
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-24 rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                      <div 
-                        className={`h-2 rounded-full ${
-                          level === 'low' ? 'bg-green-500' :
-                          level === 'medium' ? 'bg-yellow-500' :
-                          level === 'high' ? 'bg-orange-500' :
-                          'bg-red-500'
-                        }`}
-                        style={{ width: `${users.length > 0 ? (count / users.length) * 100 : 0}%` }}
-                      ></div>
-                    </div>
-                    <span className={`text-sm w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`rounded-lg shadow p-6 transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Department Distribution</h3>
-            <div className="space-y-3">
-              {Object.entries(departmentStats).map(([dept, count]) => (
-                <div key={dept} className="flex items-center justify-between">
-                  <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{dept}</span>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-24 rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${users.length > 0 ? (count / users.length) * 100 : 0}%` }}
-                      ></div>
-                    </div>
-                    <span className={`text-sm w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* User List */}
-        <div id="user-list-section" className={`rounded-lg shadow transition-colors duration-200 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-          <div className={`px-6 py-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {selectedDepartment === 'all' ? 'All Users' : `${selectedDepartment} Department`} ({filteredUsers.length})
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
-                <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    User
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Role
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Department
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Job Title
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Risk Level
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Work Patterns
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDark ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${isDark ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'}`}>
-                {filteredUsers.map((user) => {
-                  const riskLevel = getUserRiskLevel(user._id);
-                  return (
-                    <tr 
-                      key={user._id} 
-                      className={`cursor-pointer transition-colors ${
-                        isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                      }`}
-                      onClick={() => setSelectedUser(user)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                              isDark ? 'bg-gray-600' : 'bg-gray-300'
-                            }`}>
-                              <span className={`text-sm font-medium ${
-                                isDark ? 'text-gray-200' : 'text-gray-700'
-                              }`}>
-                                {user.firstName[0]}{user.lastName[0]}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{user.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.role === 'admin' 
-                            ? isDark ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
-                            : user.role === 'manager'
-                            ? isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
-                            : isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {user.department || 'N/A'}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {user.jobTitle || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(riskLevel)} dark:bg-opacity-20`}>
-                          {getRiskIcon(riskLevel)}
-                          <span className="ml-1 capitalize">{riskLevel}</span>
-                        </span>
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {user.workPatterns ? (
-                          <div className="text-xs">
-                            <div>{user.workPatterns.workHoursPerWeek}h/week</div>
-                            <div>{user.workPatterns.stressLevel}/10 stress</div>
-                            {user.role === 'manager' && (
-                              <div>{user.workPatterns.teamSize} team members</div>
-                            )}
-                          </div>
-                        ) : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEmployeeSelect(user._id);
-                            setSelectedUser(null);
-                          }}
-                          className={`text-xs font-medium transition-colors ${
-                            isDark 
-                              ? 'text-blue-400 hover:text-blue-300' 
-                              : 'text-blue-600 hover:text-blue-800'
-                          }`}
-                        >
-                          <Eye className="h-4 w-4 inline mr-1" />
-                          View Dashboard
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
         </div>
 
         {/* User Detail Modal */}
@@ -1143,6 +1110,15 @@ const AdminDashboard: React.FC = () => {
           data={myDashboardData}
         />
       )}
+      
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        user={user}
+        profileOverview={null}
+        onLogout={handleLogout}
+      />
     </div>
   );
 };

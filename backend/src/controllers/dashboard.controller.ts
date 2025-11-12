@@ -1,5 +1,6 @@
 // Dashboard Controller - Handles dashboard data requests with access control
 import { Response } from 'express';
+import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../middleware/rbac.middleware';
 import { canAccessEmployeeDataSync, ROLES, UserRole } from '../middleware/rbac.middleware';
 import { User } from '../models/user.model';
@@ -54,6 +55,16 @@ export const getEmployeeDashboard = async (
       }
     } else {
       userIdToFetch = requesterId;
+    }
+
+    // Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(userIdToFetch)) {
+      logger.error(`Invalid ObjectId format: ${userIdToFetch}`);
+      res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format'
+      });
+      return;
     }
 
     // Get user from database first to check managerId
@@ -324,6 +335,16 @@ export const getProfileOverview = async (
       }
     } else {
       userIdToFetch = requesterId;
+    }
+
+    // Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(userIdToFetch)) {
+      logger.error(`Invalid ObjectId format in getProfileOverview: ${userIdToFetch}`);
+      res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format'
+      });
+      return;
     }
 
     // Get user from database first to check managerId
