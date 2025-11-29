@@ -1,4 +1,4 @@
-// Tailwind CSS configuration - Created by Balaji Koneti
+// Tailwind CSS configuration - Created by Harish S & Team
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class', // Enable dark mode with class strategy

@@ -1,4 +1,4 @@
-// Authentication service - Created by Balaji Koneti
+// Authentication service - Created by Harish S & Team
 import { apiClient, ApiResponse } from './apiClient';
 
 // User interface

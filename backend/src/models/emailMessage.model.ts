@@ -1,4 +1,4 @@
-// Email Message model for MongoDB - Created by Balaji Koneti
+// Email Message model for MongoDB - Created by Harish S & Team
 import mongoose, { Document, Schema } from 'mongoose';
 
 // Interface for Email Message document

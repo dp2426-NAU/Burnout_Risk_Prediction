@@ -1,4 +1,4 @@
-// Database Verification Script - Created by Balaji Koneti
+// Database Verification Script - Created by Harish S & Team
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
@@ -9,7 +9,7 @@ async function verifyDatabase() {
   
   try {
     await client.connect();
-    const db = client.db('burnout_risk_prediction');
+    const db = client.db('burnout-risk-prediction');
     
     console.log('🔍 Verifying Database Contents...\n');
     

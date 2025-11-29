@@ -1,4 +1,4 @@
-// Enhanced database configuration with connection pooling and retry logic - Created by Balaji Koneti
+// Enhanced database configuration with connection pooling and retry logic - Created by Harish S & Team
 import mongoose, { ConnectOptions } from 'mongoose';
 import { MONGODB_URI, NODE_ENV } from './env';
 import { logger } from '../utils/logger';
@@ -104,6 +104,21 @@ export const connectDatabase = async (): Promise<void> => {
         return attemptConnection(retryCount + 1);
       } else {
         logger.error('❌ Failed to connect to MongoDB after all retry attempts');
+        logger.error('Connection details:', {
+          uri: normalizedMongoDBURI.replace(/\/\/.*@/, '//***:***@'),
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorName: error instanceof Error ? error.name : 'Unknown',
+          errorStack: error instanceof Error ? error.stack : undefined
+        });
+        
+        // Provide helpful troubleshooting information
+        logger.error('\n💡 Troubleshooting steps:');
+        logger.error('1. Verify MongoDB is running (if using local MongoDB)');
+        logger.error('2. Check MongoDB Atlas IP whitelist (if using Atlas)');
+        logger.error('3. Verify credentials in MONGODB_URI are correct');
+        logger.error('4. Check network connectivity and firewall settings');
+        logger.error('5. Test connection with: node backend/scripts/test-mongodb-connection.js');
+        
         if (NODE_ENV === 'production') {
           process.exit(1);
         }

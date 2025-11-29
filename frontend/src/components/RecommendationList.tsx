@@ -1,4 +1,4 @@
-// Recommendation list component - Created by Balaji Koneti
+// Recommendation list component - Created by Harish S & Team
 import React, { useState } from 'react';
 import { CheckCircle, AlertTriangle, Clock, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';

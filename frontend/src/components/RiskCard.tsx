@@ -1,4 +1,4 @@
-// Risk card component - Created by Balaji Koneti
+// Risk card component - Created by Harish S & Team
 import React, { useMemo, useCallback } from 'react';
 import { AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 

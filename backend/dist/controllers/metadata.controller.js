@@ -50,7 +50,7 @@ const getApiInfo = async (req, res) => {
                 name: 'Burnout Risk Prediction API',
                 version: '1.0.0',
                 description: 'API for predicting burnout risk in hybrid and remote teams',
-                author: 'Balaji Koneti',
+                author: 'Harish S & Team',
                 endpoints: {
                     auth: {
                         register: 'POST /api/auth/register',

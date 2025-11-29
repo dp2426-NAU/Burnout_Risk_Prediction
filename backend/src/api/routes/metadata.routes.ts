@@ -1,4 +1,4 @@
-// Metadata routes - Created by Balaji Koneti
+// Metadata routes - Created by Harish S & Team
 import { Router } from 'express';
 import {
   getHealthStatus,

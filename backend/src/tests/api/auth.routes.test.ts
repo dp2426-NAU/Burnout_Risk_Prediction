@@ -1,4 +1,4 @@
-// Auth routes integration tests - Created by Balaji Koneti
+// Auth routes integration tests - Created by Harish S & Team
 import request from 'supertest';
 import express from 'express';
 import authRoutes from '../../api/routes/auth.routes';

@@ -1,4 +1,4 @@
-// Test setup file - Created by Balaji Koneti
+// Test setup file - Created by Harish S & Team
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger';

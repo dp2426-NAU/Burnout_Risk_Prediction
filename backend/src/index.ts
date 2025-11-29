@@ -1,4 +1,4 @@
-// Main application entry point - Created by Balaji Koneti
+// Main application entry point - Created by Harish S & Team
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -21,7 +21,7 @@ import { initializeCSVDataCache } from './services/csvData.service';
 // Create Express application
 const app = express();
 
-// Enhanced security middleware - Created by Balaji Koneti
+// Enhanced security middleware - Created by Harish S & Team
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -44,7 +44,7 @@ app.use(helmet({
   }
 }));
 
-// Enhanced CORS configuration - Created by Balaji Koneti
+// Enhanced CORS configuration - Created by Harish S & Team
 const allowedOrigins = config.CORS_ORIGIN.split(',').map(origin => origin.trim());
 app.use(cors({
   origin: (origin, callback) => {
@@ -108,7 +108,7 @@ app.get('/', (req, res) => {
     success: true,
     message: 'Burnout Risk Prediction API',
     version: '1.0.0',
-    author: 'Balaji Koneti',
+    author: 'Harish S & Team',
     documentation: '/api/info',
     health: '/api/health'
   });

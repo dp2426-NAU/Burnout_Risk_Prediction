@@ -1,4 +1,4 @@
-// Authentication service - Created by Balaji Koneti
+// Authentication service - Created by Harish S & Team
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/user.model';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/env';

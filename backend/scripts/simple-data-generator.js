@@ -1,4 +1,4 @@
-// Simple Data Generator - Created by Balaji Koneti
+// Simple Data Generator - Created by Harish S & Team
 // This script generates basic synthetic data for testing
 
 const bcrypt = require('bcryptjs');

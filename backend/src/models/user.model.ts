@@ -1,4 +1,4 @@
-// User model for MongoDB - Created by Balaji Koneti
+// User model for MongoDB - Created by Harish S & Team
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
@@ -18,6 +18,9 @@ export interface IUser extends Document {
   employeeId?: string; // Maps to CSV EmployeeID column
   employeeName?: string; // Maps to CSV Name column for fallback matching
   managerId?: mongoose.Types.ObjectId; // Reference to manager (for employees)
+  gender?: string; // Gender information
+  dateOfBirth?: Date; // Date of birth
+  age?: number; // Age calculated from dateOfBirth
   createdAt: Date;
   updatedAt: Date;
   // Method to compare password
@@ -97,6 +100,18 @@ const userSchema = new Schema<IUser>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     default: null
+  },
+  gender: {
+    type: String,
+    trim: true
+  },
+  dateOfBirth: {
+    type: Date
+  },
+  age: {
+    type: Number,
+    min: 18,
+    max: 100
   }
 }, {
   timestamps: true, // Automatically add createdAt and updatedAt

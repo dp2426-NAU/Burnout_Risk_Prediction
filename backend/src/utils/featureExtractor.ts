@@ -1,4 +1,4 @@
-// Feature extraction utility for ML models - Created by Balaji Koneti
+// Feature extraction utility for ML models - Created by Harish S & Team
 import { CalendarEvent } from '../models/calendarEvent.model';
 import { EmailMessage } from '../models/emailMessage.model';
 import { logger } from './logger';

@@ -1,4 +1,4 @@
-// Performance optimization middleware - Created by Balaji Koneti
+// Performance optimization middleware - Created by Harish S & Team
 import { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import { logger } from '../utils/logger';

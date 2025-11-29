@@ -1,4 +1,4 @@
-// Prediction controller - Created by Balaji Koneti
+// Prediction controller - Created by Harish S & Team
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { 

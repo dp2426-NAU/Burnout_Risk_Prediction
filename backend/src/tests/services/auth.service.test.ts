@@ -1,4 +1,4 @@
-// Auth service tests - Created by Balaji Koneti
+// Auth service tests - Created by Harish S & Team
 import { registerUser, loginUser, verifyToken, changePassword } from '../../services/auth.service';
 import { User } from '../../models/user.model';
 import jwt from 'jsonwebtoken';

@@ -1,4 +1,4 @@
-// Authentication controller - Created by Balaji Koneti
+// Authentication controller - Created by Harish S & Team
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { 

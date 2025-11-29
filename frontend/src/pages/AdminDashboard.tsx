@@ -1,4 +1,4 @@
-// Admin Dashboard - Created by Balaji Koneti
+// Admin Dashboard - Created by Harish S & Team
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';

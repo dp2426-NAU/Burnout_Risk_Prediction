@@ -1,4 +1,4 @@
-// Sentiment analysis utility - Created by Balaji Koneti
+// Sentiment analysis utility - Created by Harish S & Team
 import { logger } from './logger';
 
 // Interface for sentiment analysis result

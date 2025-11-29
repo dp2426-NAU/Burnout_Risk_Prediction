@@ -1,4 +1,4 @@
-// Main App component - Created by Balaji Koneti
+// Main App component - Created by Harish S & Team
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import DashboardPage from './pages/DashboardPage';

@@ -1,4 +1,4 @@
-// Prediction service for burnout risk analysis - Created by Balaji Koneti
+// Prediction service for burnout risk analysis - Created by Harish S & Team
 import { PredictionResult, IPredictionResult } from '../models/predictionResult.model';
 import { extractAllFeatures, normalizeFeatures, ExtractedFeatures } from '../utils/featureExtractor';
 import { logger } from '../utils/logger';

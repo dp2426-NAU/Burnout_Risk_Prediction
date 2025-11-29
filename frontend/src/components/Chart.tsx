@@ -1,4 +1,4 @@
-// Chart component - Created by Balaji Koneti
+// Chart component - Created by Harish S & Team
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieChartIcon } from 'lucide-react';

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Test ML API Integration - Created by Balaji Koneti
+// Test ML API Integration - Created by Harish S & Team
 /**
  * Test script to verify the ML API integration works correctly.
  */

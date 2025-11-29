@@ -1,4 +1,4 @@
-// Calendar Event model for MongoDB - Created by Balaji Koneti
+// Calendar Event model for MongoDB - Created by Harish S & Team
 import mongoose, { Document, Schema } from 'mongoose';
 
 // Interface for Calendar Event document

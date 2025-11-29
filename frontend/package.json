@@ -1,7 +1,7 @@
 {
   "name": "burnout-risk-prediction-frontend",
   "version": "1.0.0",
-  "description": "Frontend for burnout risk prediction system - Created by Balaji Koneti",
+  "description": "Frontend for burnout risk prediction system - Created by Harish S & Team",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -59,6 +59,6 @@
     "typescript",
     "wellness"
   ],
-  "author": "Balaji Koneti",
+  "author": "Harish S & Team",
   "license": "MIT"
 }

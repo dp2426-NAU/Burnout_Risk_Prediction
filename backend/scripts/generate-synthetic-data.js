@@ -1,4 +1,4 @@
-// Synthetic Data Generation Script - Created by Balaji Koneti
+// Synthetic Data Generation Script - Created by Harish S & Team
 // This script generates realistic synthetic data for 50 employees and 10 managers
 
 const bcrypt = require('bcryptjs');

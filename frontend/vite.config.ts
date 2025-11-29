@@ -1,4 +1,4 @@
-// Vite configuration - Created by Balaji Koneti
+// Vite configuration - Created by Harish S & Team
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';

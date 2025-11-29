@@ -1,4 +1,4 @@
-// Metadata controller for system information - Created by Balaji Koneti
+// Metadata controller for system information - Created by Harish S & Team
 import { Request, Response } from 'express';
 import { logger } from '../utils/logger';
 
@@ -65,7 +65,7 @@ export const getApiInfo = async (req: Request, res: Response): Promise<void> => 
         name: 'Burnout Risk Prediction API',
         version: '1.0.0',
         description: 'API for predicting burnout risk in hybrid and remote teams',
-        author: 'Balaji Koneti',
+        author: 'Harish S & Team',
         endpoints: {
           auth: {
             register: 'POST /api/auth/register',

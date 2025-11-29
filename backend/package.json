@@ -1,7 +1,7 @@
 {
   "name": "burnout-risk-prediction-backend",
   "version": "1.0.0",
-  "description": "Backend API for burnout risk prediction system - Created by Balaji Koneti",
+  "description": "Backend API for burnout risk prediction system - Created by Harish S & Team",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -69,6 +69,6 @@
     "wellness",
     "hybrid-work"
   ],
-  "author": "Balaji Koneti",
+  "author": "Harish S & Team",
   "license": "MIT"
 }

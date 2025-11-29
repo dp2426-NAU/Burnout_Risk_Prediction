@@ -1,4 +1,4 @@
-// Users routes - Created by Balaji Koneti
+// Users routes - Created by Harish S & Team
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { User } from '../../models/user.model';

@@ -1,4 +1,4 @@
-// useAuth hook tests - Created by Balaji Koneti
+// useAuth hook tests - Created by Harish S & Team
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAuth, AuthProvider } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';

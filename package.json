@@ -1,7 +1,7 @@
 {
   "name": "burnout-risk-prediction-system",
   "version": "1.0.0",
-  "description": "Production-ready burnout risk prediction system for hybrid and remote teams - Created by Balaji Koneti",
+  "description": "Production-ready burnout risk prediction system for hybrid and remote teams - Created by Harish S & Team",
   "private": true,
   "scripts": {
     "install:all": "npm run install:backend && npm run install:frontend && npm run install:ml",
@@ -51,7 +51,7 @@
     "healthcare",
     "productivity"
   ],
-  "author": "Balaji Koneti",
+  "author": "Harish S & Team",
   "license": "MIT",
   "repository": {
     "type": "git",

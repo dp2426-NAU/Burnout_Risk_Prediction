@@ -1,4 +1,4 @@
-// Dashboard page component - Created by Balaji Koneti
+// Dashboard page component - Created by Harish S & Team
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { dashboardService, DashboardData } from '../services/dashboardService';

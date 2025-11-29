@@ -1,4 +1,4 @@
-// PostCSS configuration - Created by Balaji Koneti
+// PostCSS configuration - Created by Harish S & Team
 export default {
   plugins: {
     tailwindcss: {},

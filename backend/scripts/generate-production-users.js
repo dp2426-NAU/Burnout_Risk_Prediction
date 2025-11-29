@@ -1,4 +1,4 @@
-// Production user generation script - Created by Balaji Koneti
+// Production user generation script - Created by Harish S & Team
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -195,7 +195,7 @@ async function generateProductionUsers() {
       departments: [...new Set([...employees, ...managers].map(u => u.department))],
       teamAssignments: teamAssignments.length,
       generatedAt: new Date().toISOString(),
-      author: 'Balaji Koneti'
+      author: 'Harish S & Team'
     };
     
     console.log('\n📊 Generation Summary:');

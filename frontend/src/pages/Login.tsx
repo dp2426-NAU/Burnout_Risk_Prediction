@@ -1,4 +1,4 @@
-// Login page component - Created by Balaji Koneti
+// Login page component - Created by Harish S & Team
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -235,7 +235,7 @@ const Login: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500">
-          <p>Created by Balaji Koneti</p>
+          <p>Created by Harish S & Team</p>
           <p>AI-powered burnout risk prediction for hybrid and remote teams</p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-// Redis Cache Service - Created by Balaji Koneti
+// Redis Cache Service - Created by Harish S & Team
 import Redis from 'ioredis';
 import { logger } from '../utils/logger';
 

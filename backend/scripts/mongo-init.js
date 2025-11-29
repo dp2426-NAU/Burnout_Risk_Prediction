@@ -1,4 +1,4 @@
-// MongoDB initialization script - Created by Balaji Koneti
+// MongoDB initialization script - Created by Harish S & Team
 // This script sets up the database and collections for the burnout risk prediction system
 
 // Switch to the burnout risk prediction database

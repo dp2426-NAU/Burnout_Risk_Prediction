@@ -1,4 +1,4 @@
-// Simple Realistic Data Generation - Created by Balaji Koneti
+// Simple Realistic Data Generation - Created by Harish S & Team
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 const { MongoClient, ObjectId } = require('mongodb');

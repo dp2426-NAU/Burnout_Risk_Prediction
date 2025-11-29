@@ -1,4 +1,4 @@
-// Winston logger configuration - Created by Balaji Koneti
+// Winston logger configuration - Created by Harish S & Team
 import winston from 'winston';
 import { NODE_ENV } from '../config/env';
 

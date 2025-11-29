@@ -1,4 +1,4 @@
-// Database migration script - Created by Balaji Koneti
+// Database migration script - Created by Harish S & Team
 require('dotenv').config();
 const mongoose = require('mongoose');
 const { logger } = require('../src/utils/logger');
@@ -162,7 +162,7 @@ async function recordMigration(version, description, status) {
       description,
       status,
       timestamp: new Date(),
-      author: 'Balaji Koneti'
+      author: 'Harish S & Team'
     });
   } catch (error) {
     console.error('Failed to record migration:', error);

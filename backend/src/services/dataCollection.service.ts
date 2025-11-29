@@ -1,4 +1,4 @@
-// Data Collection Service - Created by Balaji Koneti
+// Data Collection Service - Created by Harish S & Team
 // Service for coordinating data collection from external APIs and ML pipeline
 
 import { logger } from '../utils/logger';

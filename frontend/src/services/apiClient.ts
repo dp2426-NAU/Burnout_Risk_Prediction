@@ -1,4 +1,4 @@
-// API client configuration - Created by Balaji Koneti
+// API client configuration - Created by Harish S & Team
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // API response interface

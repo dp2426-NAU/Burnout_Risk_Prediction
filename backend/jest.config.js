@@ -1,4 +1,4 @@
-// Jest configuration for backend testing - Created by Balaji Koneti
+// Jest configuration for backend testing - Created by Harish S & Team
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',

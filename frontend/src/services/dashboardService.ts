@@ -1,4 +1,4 @@
-// Dashboard Service - Created by Balaji Koneti
+// Dashboard Service - Created by Harish S & Team
 // This service handles dashboard data fetching
 
 import { apiClient } from './apiClient';

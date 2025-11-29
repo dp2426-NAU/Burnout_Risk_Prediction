@@ -1,4 +1,4 @@
-// Security middleware - Created by Balaji Koneti
+// Security middleware - Created by Harish S & Team
 import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import { logger } from '../utils/logger';

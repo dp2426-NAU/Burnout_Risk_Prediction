@@ -1,4 +1,4 @@
-// Test setup file for frontend - Created by Balaji Koneti
+// Test setup file for frontend - Created by Harish S & Team
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 

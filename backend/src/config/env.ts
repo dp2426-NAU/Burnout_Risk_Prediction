@@ -1,4 +1,4 @@
-// Environment configuration - Created by Balaji Koneti
+// Environment configuration - Created by Harish S & Team
 import dotenv from 'dotenv';
 
 // Load environment variables from .env file

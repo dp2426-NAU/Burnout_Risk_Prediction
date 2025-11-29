@@ -1,4 +1,4 @@
-// Authentication routes - Created by Balaji Koneti
+// Authentication routes - Created by Harish S & Team
 import { Router } from 'express';
 import { body } from 'express-validator';
 import {

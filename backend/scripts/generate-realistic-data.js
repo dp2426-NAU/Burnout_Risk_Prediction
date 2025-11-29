@@ -1,4 +1,4 @@
-// Realistic Data Generation Script - Created by Balaji Koneti
+// Realistic Data Generation Script - Created by Harish S & Team
 // This script generates unique, realistic data for each user
 
 const bcrypt = require('bcryptjs');

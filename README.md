@@ -271,7 +271,7 @@ For support and questions:
 
 ## 🎉 Acknowledgments
 
-- **Created by**: Balaji Koneti
+- **Created by**: Harish S & Team
 - **Framework**: React, Node.js, Python, FastAPI
 - **Database**: MongoDB, Redis
 - **ML Libraries**: Scikit-learn, TensorFlow, Pandas, NumPy

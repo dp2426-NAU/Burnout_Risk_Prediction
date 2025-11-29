@@ -1,4 +1,4 @@
-// Dashboard component - Created by Balaji Koneti
+// Dashboard component - Created by Harish S & Team
 import React, { useMemo } from 'react';
 import { BarChart3, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 

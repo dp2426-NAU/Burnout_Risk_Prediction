@@ -1,4 +1,4 @@
-// Prediction service tests - Created by Balaji Koneti
+// Prediction service tests - Created by Harish S & Team
 import { generatePrediction } from '../../services/prediction.service';
 import { User } from '../../models/user.model';
 import { CalendarEvent } from '../../models/calendarEvent.model';

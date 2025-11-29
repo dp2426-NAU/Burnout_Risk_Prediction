@@ -1,4 +1,4 @@
-// Authentication hook - Created by Balaji Koneti
+// Authentication hook - Created by Harish S & Team
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../services/authService';
 

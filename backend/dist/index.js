@@ -90,7 +90,7 @@ app.get('/', (req, res) => {
         success: true,
         message: 'Burnout Risk Prediction API',
         version: '1.0.0',
-        author: 'Balaji Koneti',
+        author: 'Harish S & Team',
         documentation: '/api/info',
         health: '/api/health'
     });

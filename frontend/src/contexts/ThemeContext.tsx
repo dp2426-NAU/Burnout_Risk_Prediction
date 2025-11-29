@@ -1,4 +1,4 @@
-// Theme Context - Created by Balaji Koneti
+// Theme Context - Created by Harish S & Team
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';

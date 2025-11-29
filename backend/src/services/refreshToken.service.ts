@@ -1,4 +1,4 @@
-// Refresh Token Service - Created by Balaji Koneti
+// Refresh Token Service - Created by Harish S & Team
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/env';
 import { logger } from '../utils/logger';

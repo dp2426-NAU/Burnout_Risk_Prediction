@@ -1,4 +1,4 @@
-// ML API Client Service - Created by Balaji Koneti
+// ML API Client Service - Created by Harish S & Team
 /**
  * Service for communicating with the ML service API to get real predictions
  * instead of using hardcoded formulas.

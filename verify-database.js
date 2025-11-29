@@ -1,4 +1,4 @@
-// Database Verification Script - Created by Balaji Koneti
+// Database Verification Script - Created by Harish S & Team
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
