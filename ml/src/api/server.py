@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
@@ -122,6 +122,7 @@ def create_app() -> FastAPI:
         }
 
     @app.get("/health")
+    @app.head("/health")
     async def health() -> Dict[str, str]:
         return {"status": "ok"}
 
